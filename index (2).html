@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ноа: симулятор путника</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:wght@400;700&display=swap">
+<style>
+:root{--bg:#e9eef0;--card:#f8fafa;--ink:#14262d;--mut:#5a6e75;--line:#c9d4d7;--acc:#c98a1f;--ok:#3f7f5c;--sky:#9fd8ec;--gr:#86c06c;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d181d;--card:#152830;--ink:#e6eff1;--mut:#8fa6ac;--line:#24404a;--acc:#e9a93b;--ok:#6fc29a;--sky:#1d3f4f;--gr:#2f5a45}}
+:root[data-theme="dark"]{--bg:#0d181d;--card:#152830;--ink:#e6eff1;--mut:#8fa6ac;--line:#24404a;--acc:#e9a93b;--ok:#6fc29a;--sky:#1d3f4f;--gr:#2f5a45}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.45 Alegreya,Georgia,serif}
+html,body{height:100%;overflow:hidden}#app{max-width:480px;margin:0 auto;height:100%;display:flex;flex-direction:column;padding:8px 14px 0}#hud{flex:none}#panel{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:2px 2px 14px}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.lv{font-weight:700;font-size:1.1rem}
+.xp{flex:1;height:18px;border-radius:9px;background:var(--line);overflow:hidden;position:relative}.xp span{position:absolute;inset:0;text-align:center;font-size:.74rem;line-height:18px;font-weight:700;color:#fff;text-shadow:0 0 3px rgba(0,0,0,.8),0 1px 2px rgba(0,0,0,.6)}
+.xp i{display:block;height:100%;background:var(--acc)}
+button.coin{background:transparent;color:var(--acc);font-size:.95rem;padding:4px 6px}
+.en{display:flex;align-items:center;gap:8px;margin:0 0 10px;color:var(--mut);font-size:.9rem}.eb{flex:1;height:4px;border-radius:2px;background:var(--line);overflow:hidden}.eb i{display:block;height:100%;background:var(--ok);border-radius:2px;transition:width .3s}.ev{min-width:34px;text-align:right}
+.stage{flex:none;position:relative;background:linear-gradient(var(--sky) 0 68%,var(--gr) 68%);border-radius:18px;padding:8px 8px 0;text-align:center;margin-bottom:6px}
+.say{position:absolute;top:10px;right:10px;max-width:44%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 10px;font-size:.92rem;line-height:1.25}
+.stage svg{width:150px;height:auto;display:block;margin:0 auto}
+.bob{animation:none}
+@keyframes bob{50%{transform:translateY(-3px)}}
+@media (prefers-reduced-motion:reduce){.bob{animation:none}}
+h2{font-size:1.2rem;margin:16px 2px 8px}
+.row{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.row .tx{flex:1}.row small{display:block;color:var(--mut);font-size:.88rem;line-height:1.3}
+.row.dn{opacity:.55}
+.row svg{width:56px;height:56px;flex:none}
+button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:8px 12px;background:var(--acc);color:#14262d;cursor:pointer}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+button[disabled]{background:var(--line);color:var(--mut);cursor:default}
+button.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.bs{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.bs button{padding:5px 10px;font-size:.92rem}
+.bar{height:6px;background:var(--line);border-radius:3px;margin-top:5px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok)}
+nav{flex:none;background:var(--card);border-top:1px solid var(--line);display:flex;gap:2px;padding:6px 4px;margin:0 -14px;overflow-x:auto;overscroll-behavior-x:contain}
+nav button{flex:0 0 auto;min-width:66px;display:flex;flex-direction:column;align-items:center;padding:4px 2px;font-size:.78rem;line-height:1.2;background:transparent;color:var(--mut);border:1px solid transparent}.ic{font-size:1.45rem;line-height:1.1}
+nav button.on{color:var(--ink);border-color:var(--acc)}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:28px;background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:12px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90%;text-align:center}
+#toast.s{opacity:1}
+.log{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px;font-size:.95rem}
+.log b.w{color:var(--ok)}.log b.l{color:#c24a3a}
+#battle,#act{position:fixed;inset:0;z-index:20;background:rgba(4,9,12,.85);display:flex;align-items:center;justify-content:center;padding:12px}#battle[hidden],#act[hidden]{display:none}
+.bw{width:100%;max-width:440px;max-height:100%;overflow-y:auto;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px}
+.bn,.pn{display:flex;justify-content:space-between;font-weight:700;margin-bottom:3px}.pn{margin-top:8px}
+.hb{height:10px;background:var(--line);border-radius:5px;overflow:hidden}.hb i{display:block;height:100%}
+.arena{position:relative;height:250px;margin-top:8px;border-radius:12px;overflow:hidden;background:linear-gradient(var(--sky) 0 70%,var(--gr) 70%);display:flex;justify-content:space-between;align-items:flex-end;padding:0 8px 4px}
+.ac{width:42%}.ac svg{width:100%;height:auto;display:block}.ac.b2{width:46%;padding-bottom:22px}
+.ac.lr{animation:lr .6s}.ac.ll{animation:ll .6s}.ac.sk{animation:sk .45s .12s}
+@keyframes lr{40%{transform:translateX(70px)}}@keyframes ll{40%{transform:translateX(-70px)}}@keyframes sk{20%{transform:translateX(-7px);filter:brightness(1.8)}60%{transform:translateX(7px)}}
+.num{position:absolute;top:28%;font-weight:700;font-size:1.5rem;color:#fff;text-shadow:0 0 4px #000,0 0 5px #c0392b;animation:rise .9s forwards}.nb{right:16%}.np{left:16%}
+@keyframes rise{from{transform:translateY(10px);opacity:1}to{transform:translateY(-26px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.ac,.num{animation:none!important}}
+button.buy{background:linear-gradient(#4ff08a,#16a34a);color:#03200e;font-size:1.02rem;padding:9px 18px;box-shadow:0 0 0 2px rgba(79,240,138,.4),0 3px 10px rgba(22,163,74,.55)}
+button.buy[disabled]{background:var(--line);color:var(--mut);box-shadow:none}
+.rt{font-size:.72rem;font-weight:700;border:1px solid currentColor;border-radius:6px;padding:0 5px;margin-left:2px;white-space:nowrap}.ic2{width:50px;height:50px;flex:none;display:grid;place-items:center;border:2.5px solid;border-radius:12px;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.7),rgba(130,150,160,.3))}.row .ic2 svg{width:40px;height:40px;flex:none}
+.sw{width:30px;height:30px;border-radius:8px;flex:none;border:1px solid var(--line)}.ico{width:34px;height:34px;flex:none}
+.bc{display:flex;flex-direction:column;gap:6px}
+.stage.big{padding:46px 8px 0;margin-bottom:8px}.stage.big svg{width:min(250px,72%)}
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;flex:none}
+.sp{display:flex;align-items:center;gap:10px;margin-bottom:8px}.tt{font-size:1.05rem;margin:6px 0 12px;line-height:1.4}
+.gi{margin:6px 0;color:var(--mut);font-size:.95rem}.tbar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:8px}.tbar i{display:block;height:100%;background:var(--acc)}
+.gr4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.gr4 button{font-size:1.6rem;padding:10px 0;background:var(--line);color:var(--ink)}
+.lamps{display:flex;gap:12px;justify-content:center;margin:10px 0}.lamp{width:62px;height:62px;border-radius:50%;padding:0}
+.field{position:relative;height:190px;background:var(--line);border-radius:12px;overflow:hidden}.field button{position:absolute;width:38px;height:38px;border-radius:50%;padding:0;transform:translate(-50%,-50%)}.field svg{position:absolute;inset:0;width:100%;height:100%}
+.tm{position:relative;height:34px;background:var(--line);border-radius:17px;margin:14px 0;overflow:hidden}.tm .zone{position:absolute;top:0;bottom:0;background:#3fae6a}.tm .mk{position:absolute;top:3px;bottom:3px;width:8px;border-radius:4px;background:var(--ink)}
+.stage.big{position:relative;height:280px;padding:0;overflow:hidden;background:#2b333b}
+.stage.big .bgi{position:absolute;inset:0;width:100%;height:100%;max-width:none;margin:0}
+.stage.big .hsvg{position:relative;z-index:1;display:block;height:100%;width:auto;max-width:none;margin:0 auto}
+.stage.big .say{z-index:2}
+body{background:var(--bg)}
+#app.hero{position:relative;padding:0;overflow:hidden;background:#1b232b}
+#app.hero #hud{position:absolute;top:0;left:0;right:0;z-index:6;padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 22px;background:linear-gradient(rgba(6,12,18,.78),rgba(6,12,18,0))}
+#app.hero #hud .lv{color:#fff;text-shadow:0 1px 3px #000}#app.hero #hud .en{color:#e6eff1;margin:0}#app.hero #hud .xp{background:rgba(255,255,255,.28)}#app.hero #hud .eb{background:rgba(255,255,255,.28)}#app.hero #hud .top{margin-bottom:6px}
+#app.hero #panel{position:absolute;inset:0;padding:0;overflow:hidden}
+#app.hero .stage.big{position:absolute;inset:0;height:auto;border-radius:0;margin:0;background:#2b333b}
+#app.hero .stage.big .hsvg{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(158px + env(safe-area-inset-bottom,0px));height:min(calc(100% - 300px),118vw);width:auto;margin:0;max-width:none}
+#app.hero .stage.big .say{top:auto;bottom:calc(168px + env(safe-area-inset-bottom,0px));right:auto;left:14px;max-width:46%;opacity:.95;z-index:3}
+#app.hero .menu{position:absolute;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));margin:0;z-index:5;grid-template-columns:repeat(5,1fr);gap:6px}
+#app.hero .menu button{background:rgba(8,16,24,.42);color:#fff;border:1.5px solid rgba(255,255,255,.6);padding:8px 2px;border-radius:14px;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);text-shadow:0 1px 3px rgba(0,0,0,.8);font-weight:700;font-size:.72rem}
+#app.hero .menu .ic{filter:drop-shadow(0 1px 2px rgba(0,0,0,.7));font-size:1.35rem}
+.pet{position:absolute;right:6%;bottom:calc(150px + env(safe-area-inset-bottom,0px));width:76px;z-index:4}.pet svg{width:100%;height:auto;display:block;filter:drop-shadow(0 3px 3px rgba(0,0,0,.5))}.pet.hg svg{opacity:.6}.pet span{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:1.1rem}
+.plate{position:absolute;top:calc(env(safe-area-inset-top,0px) + 88px);left:50%;transform:translateX(-50%);z-index:4;background:rgba(8,16,24,.5);color:#ffe9b0;border:1px solid rgba(255,233,176,.6);border-radius:12px;padding:2px 12px;font-weight:700;font-size:.85rem;letter-spacing:.4px;white-space:nowrap}
+.hd{position:sticky;top:0;z-index:3;background:var(--bg);display:flex;align-items:center;gap:12px;padding:4px 0 8px}.hd b{font-size:1.15rem}
+.menu{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.menu button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 2px;background:var(--card);color:var(--ink);border:1px solid var(--line);font-size:.82rem;line-height:1.15}
+.menu .ic{font-size:1.6rem}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:.95rem;padding:3px 0;border-bottom:1px dashed var(--line)}.kv:last-child{border-bottom:0}.kv b{text-align:right}
+.vic{text-align:center}.vt{font-size:2.3rem;font-weight:700;color:var(--acc);animation:pop .55s}.vs{color:var(--mut);margin-bottom:4px}
+.prz{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}.prz div{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:8px 2px;font-size:.78rem;color:var(--mut);display:flex;flex-direction:column;align-items:center}.prz span{font-size:1.5rem}.prz b{font-size:1.1rem;color:var(--ink)}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.vt{animation:none}}
+.eyes{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:10px 0}.eyes button{width:44px;height:44px;border-radius:50%;padding:0;border:3px solid transparent;box-shadow:inset 0 0 0 3px var(--card)}.eyes button.on{border-color:var(--ink)}
+.dg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}.dg div{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:6px 2px;text-align:center;font-size:.78rem;line-height:1.35}.dg .cur{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}.dg .got{opacity:.45}.dg b{display:block;color:var(--ink)}
+.chips{display:flex;gap:6px;overflow-x:auto;flex-basis:100%;padding:2px 0;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}.chips button{flex:0 0 auto;padding:6px 10px;font-size:.88rem;background:var(--card);color:var(--ink);border:1px solid var(--line)}.chips button.on{background:var(--acc);color:#14262d;border-color:var(--acc)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="i_st" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef2f6"/><stop offset="1" stop-color="#6d7a8a"/></linearGradient><linearGradient id="i_gd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset="1" stop-color="#b8892a"/></linearGradient><linearGradient id="i_mt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d8f2ff"/><stop offset="1" stop-color="#3f7fb0"/></linearGradient><linearGradient id="i_ab" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b8a4ff"/><stop offset="1" stop-color="#34246e"/></linearGradient><linearGradient id="i_lt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8c6239"/><stop offset="1" stop-color="#4d2f19"/></linearGradient><linearGradient id="i_rd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d44a3c"/><stop offset="1" stop-color="#7a1f26"/></linearGradient><pattern id="i_mail" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="2.2" fill="none" stroke="#2f3944" stroke-width="1"/></pattern></defs></svg>
+<div id="app"><div id="hud"></div><div id="panel"></div></div>
+<div id="act" hidden></div>
+<div id="battle" hidden></div>
+<div id="toast" role="status"></div>
+<script>
+var KEY='noa-v2',MAXEN=15;
+var EYES=[{c:'#4f9a78',n:'Зелёные'},{c:'#4a86d0',n:'Голубые'},{c:'#2f5fa8',n:'Синие'},{c:'#7a4a2a',n:'Карие'},{c:'#a0793a',n:'Ореховые'},{c:'#7d8a96',n:'Серые'},{c:'#c9892a',n:'Янтарные'},{c:'#8a5cd6',n:'Фиалковые'}];
+function rndEye(){return EYES[Math.floor(Math.random()*EYES.length)].c}
+var ORES=[{id:'iron',n:'Железная руда',ic:'🔩',col:'#9aa6b4',p:12,ul:1},{id:'copper',n:'Медная руда',ic:'🟤',col:'#b87333',p:16,ul:2},{id:'silver',n:'Серебряная руда',ic:'⚪',col:'#cfd8e3',p:24,ul:4},{id:'mithril',n:'Мифриловая руда',ic:'🔷',col:'#5fb3e6',p:36,ul:6},{id:'gold',n:'Золотая руда',ic:'🟡',col:'#e9c24a',p:50,ul:8}];
+var WORE={staff:'iron',bow:'copper',dagger:'silver',moon:'silver',spark:'mithril',blade:'gold',light:'gold',trident:'mithril',glaive:'gold',abyss:'gold'};
+function oid(id){return WORE[id]||'iron'}
+function oget(id){return id==='iron'?S.ore:((S.ox&&S.ox[id])||0)}
+function oadd(id,n){if(id==='iron')S.ore+=n;else{S.ox=S.ox||{};S.ox[id]=(S.ox[id]||0)+n}}
+function totalOre(){var n=0;ORES.forEach(function(o){n+=oget(o.id)});return n}
+var UC={moon:{o:'silver',n:6,c:300},light:{o:'gold',n:8,c:700},fog:{o:'mithril',n:4,c:250},dawn:{o:'gold',n:4,c:400},keeper:{o:'mithril',n:6,c:800}};
+function otext(m){return Object.keys(m||{}).map(function(k){return ', '+by(ORES,k).ic+' +'+m[k]}).join('')}
+function oused(id){var u=W.filter(function(w){return oid(w.id)===id}).map(function(w){return w.n});if(id==='iron')u.push('вся экипировка');return u.join(', ')}
+function EC(){return S.eye||'#4f9a78'}
+function by(a,id){return a.filter(function(x){return x.id===id})[0]}
+var TASKS=[
+{id:'herb',n:'Собрать травы у ручья',e:2,xp:15,c:8,cr:0},
+{id:'crate',n:'Донести ящик в порт',e:2,xp:20,c:10,cr:0,ore:1},
+{id:'lamp',n:'Зажечь фонари на пристани',e:1,xp:10,c:5,cr:0},
+{id:'map',n:'Зарисовать тропу на карту',e:3,xp:30,c:12,cr:1},
+{id:'fish',n:'Наловить рыбы для таверны',e:2,xp:18,c:9,cr:0},
+{id:'bridge',n:'Починить мост у болот',e:3,xp:28,c:11,cr:1,ore:2}];
+var RAR=[{n:'Обычный',c:'#8a98a0'},{n:'Необычный',c:'#3fae6a'},{n:'Редкий',c:'#3f7fe0'},{n:'Эпический',c:'#a35cd6'},{n:'Легендарный',c:'#e9a93b'}];
+var CLO=[
+{id:'iron',slot:'helm',n:'Железный шлем',p:45,ul:1,hp:10,col:'#9aa6b4',r:0},
+{id:'crest',slot:'helm',n:'Шлем с гребнем',p:110,ul:4,hp:18,atk:1,col:'#c0392b',r:1,ch:1,pl:'url(#rd)'},
+{id:'horn',set:'ranger',slot:'helm',n:'Рогатый шлем',p:260,ul:9,hp:32,atk:2,col:'#b9c0c8',r:2,k:2,o:'silver',on:3,hn:1},
+{id:'warden',set:'mith',slot:'helm',n:'Шлем Стража',p:560,ul:13,hp:48,atk:3,col:'#5fb3e6',r:3,k:4,o:'mithril',on:4,mat:'mt',ch:1,pl:'#7fd0ff'},
+{id:'crown',set:'beacon',slot:'helm',n:'Корона Маяка',p:1100,ul:17,hp:80,atk:5,col:'#f2c14e',r:4,k:8,o:'gold',on:6,mat:'gd',cw:1},
+{id:'dawn',slot:'helm',n:'Шлем Рассвета',p:0,ul:99,hp:40,atk:3,col:'#f2c14e',r:3,u:1,need:10,mat:'gd',ch:1,pl:'#fff7d6'},
+{id:'leather',slot:'armor',n:'Кожаная куртка',p:35,ul:1,hp:12,col:'#7a5230',r:0,kd:'lt'},
+{id:'chain',slot:'armor',n:'Кольчуга',p:85,ul:3,hp:25,col:'#7d8794',r:1,kd:'ch'},
+{id:'plate',slot:'armor',n:'Латный доспех',p:170,ul:5,hp:45,col:'#c3ccd6',r:2,k:1,o:'silver',on:3,kd:'pl'},
+{id:'scale',slot:'armor',n:'Чешуйчатый панцирь',p:340,ul:9,hp:70,col:'#3f8f7f',r:2,k:2,o:'silver',on:4,kd:'ch'},
+{id:'mithc',set:'mith',slot:'armor',n:'Мифриловая кираса',p:680,ul:12,hp:105,atk:2,col:'#5fb3e6',r:3,k:4,o:'mithril',on:5,kd:'pl',mat:'mt',f1:'#8fd0f5',f2:'#4f8fbf'},
+{id:'abyssa',set:'abyss',slot:'armor',n:'Доспех Бездны',p:1250,ul:16,hp:170,atk:5,col:'#7a62d6',r:4,k:8,o:'gold',on:7,kd:'pl',mat:'ab',f1:'#7a62d6',f2:'#4a3a9a'},
+{id:'keeper',set:'beacon',slot:'armor',n:'Нагрудник Хранителя',p:0,ul:99,hp:110,atk:4,col:'#e8c15a',r:4,u:1,need:12,kd:'pl',mat:'gd',f1:'#d9b043',f2:'#b8892a'},
+{id:'gaunt',slot:'hands',n:'Латные перчатки',p:50,ul:2,atk:2,col:'#aab5c2',r:0},
+{id:'spike',set:'ranger',slot:'hands',n:'Шипастые перчатки',p:170,ul:6,atk:4,col:'#8794a3',r:1},
+{id:'mithg',set:'mith',slot:'hands',n:'Мифриловые перчатки',p:430,ul:11,atk:6,hp:10,col:'#5fb3e6',r:2,k:3,o:'mithril',on:3,mat:'mt'},
+{id:'abyssg',set:'abyss',slot:'hands',n:'Перчатки Бездны',p:850,ul:15,atk:9,hp:20,col:'#7a62d6',r:4,k:6,o:'gold',on:5,mat:'ab'},
+{id:'boots',slot:'boots',n:'Стальные сапоги',p:45,ul:2,hp:8,col:'#aab5c2',r:0},
+{id:'swift',set:'ranger',slot:'boots',n:'Сапоги следопыта',p:120,ul:5,hp:16,col:'#7a5230',r:1,mat:'lt'},
+{id:'mithb',set:'mith',slot:'boots',n:'Мифриловые сапоги',p:380,ul:10,hp:30,atk:1,col:'#5fb3e6',r:2,k:2,o:'mithril',on:3,mat:'mt'},
+{id:'abyssb',set:'abyss',slot:'boots',n:'Сапоги Бездны',p:700,ul:14,hp:48,atk:2,col:'#7a62d6',r:3,k:4,o:'gold',on:4,mat:'ab'},
+{id:'grey',slot:'cape',n:'Серый плащ',p:30,ul:1,hp:4,col:'#5d6773',r:0},
+{id:'crim',slot:'cape',n:'Багровый плащ',p:75,ul:3,hp:8,col:'#8e2a35',r:1},
+{id:'wind',set:'ranger',slot:'cape',n:'Плащ ветров',p:140,ul:6,hp:12,col:'#7fb8c9',r:1},
+{id:'night',slot:'cape',n:'Плащ ночи',p:420,ul:11,hp:22,atk:2,col:'#2b2f6b',r:2,k:3,o:'silver',on:5},
+{id:'flame',set:'abyss',slot:'cape',n:'Плащ Заката',p:950,ul:16,hp:40,atk:4,col:'#e0623a',r:4,k:7,o:'gold',on:5},
+{id:'fog',slot:'cape',n:'Плащ Тумана',p:0,ul:99,hp:30,atk:3,col:'#2fb5a8',r:3,u:1,need:8},
+{id:'wood',slot:'shield',n:'Деревянный щит',p:35,ul:1,hp:10,col:'#8a5a2c',r:0},
+{id:'steel',slot:'shield',n:'Стальной щит',p:100,ul:4,hp:22,col:'#b8c2ce',r:1},
+{id:'tower',slot:'shield',n:'Башенный щит',p:230,ul:8,hp:40,col:'#8fa0b0',r:2,k:1,o:'silver',on:3},
+{id:'mithsh',set:'mith',slot:'shield',n:'Мифриловый щит',p:580,ul:12,hp:68,col:'#5fb3e6',r:3,k:4,o:'mithril',on:4,mat:'mt'},
+{id:'aegis',set:'beacon',slot:'shield',n:'Эгида Маяка',p:1150,ul:17,hp:115,atk:3,col:'#e8c15a',r:4,k:8,o:'gold',on:6,mat:'gd',gem:'#e0483a'}];
+var W=[
+{id:'staff',n:'Дорожный посох',d:4,p:0,ul:1,col:'#a67c52',r:0},
+{id:'bow',n:'Охотничий лук',d:7,p:40,ul:2,col:'#6f9146',r:1},
+{id:'dagger',n:'Лунный кинжал',d:10,p:80,ul:3,col:'#9fb8d8',r:1},
+{id:'spark',n:'Посох искр',d:13,p:130,ul:5,col:'#f3d08a',r:2,k:1,o:'mithril',on:2},
+{id:'blade',n:'Клинок маяка',d:19,p:220,ul:7,col:'#e9a93b',r:2,k:2,o:'gold',on:2},
+{id:'trident',n:'Трезубец прилива',d:23,p:340,ul:9,col:'#4fc3d8',r:3,k:3,o:'mithril',on:4},
+{id:'glaive',n:'Глефа Хранителя',d:29,p:620,ul:12,col:'#cfd8e3',r:3,k:4,o:'gold',on:4},
+{id:'abyss',n:'Клинок Бездны',d:36,p:1300,ul:16,col:'#7a62d6',r:4,k:8,o:'gold',on:8},
+{id:'moon',n:'Лунный палаш',d:16,p:0,ul:99,col:'#9fc3e8',r:3,u:1,need:8},
+{id:'light',n:'Клинок Первого Света',d:30,p:0,ul:99,col:'#ffd45e',r:4,u:1,need:12}];
+function rb(i){var r=RAR[i.r||0];return '<span class="rt" style="color:'+r.c+'">'+r.n+'</span>'+(i.set?' <span class="rt" style="color:var(--mut)">'+SETS[i.set].n+'</span>':'')}
+function icoSvg(i){
+var S0='stroke="#2a1d14" stroke-width="1.2" stroke-linejoin="round"',m=function(x){return mg(x).replace('url(#','url(#i_')},o='';
+function P(d,f,x){return '<path d="'+d+'" fill="'+f+'" '+S0+(x||'')+'/>'}
+if(i.d!==undefined){var id=i.id;
+if(id==='staff')o='<line x1="24" y1="6" x2="24" y2="43" stroke="#a67c52" stroke-width="4.5" stroke-linecap="round"/><path d="M19 13H29M19 24H29" stroke="#6b4a2a" stroke-width="2"/>';
+else if(id==='bow')o='<path d="M15 5Q41 24 15 43" stroke="#8a5a2c" stroke-width="3.5" fill="none" stroke-linecap="round"/><line x1="15" y1="5" x2="15" y2="43" stroke="#f1e6c8" stroke-width="1.2"/><line x1="15" y1="24" x2="39" y2="24" stroke="#c9a24a" stroke-width="2"/><path d="M39 24L33 20V28Z" fill="#cfd8e3"/><path d="M15 24L19 20M15 24L19 28" stroke="#c0392b" stroke-width="1.5"/>';
+else if(id==='dagger')o=P('M24 3L29 26L24 35L19 26Z','#cfe0f5')+'<path d="M24 5V32" stroke="#fff" stroke-width="1" opacity=".8"/>'+'<rect x="16" y="33" width="16" height="4" rx="2" fill="#6a4fd0" '+S0+'/><rect x="22" y="37" width="4" height="8" fill="#5a3a2a"/>';
+else if(id==='spark')o='<circle cx="24" cy="11" r="10" fill="#ffe9a8" opacity=".4"/><line x1="24" y1="14" x2="24" y2="44" stroke="#7a5a3a" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="11" r="5.5" fill="#ffe9a8" stroke="#e9a93b" stroke-width="2"/><path d="M12 6L15 8M36 6L33 8M10 14H14M38 14H34" stroke="#f3d08a" stroke-width="1.6" stroke-linecap="round"/>';
+else if(id==='blade')o=P('M24 2L29 7V30H19V7Z','url(#i_gd)')+'<path d="M24 5V28" stroke="#fff6cc" stroke-width="1.2"/><rect x="14" y="30" width="20" height="4.5" rx="2" fill="#e9a93b" '+S0+'/><rect x="22" y="34" width="4" height="9" fill="#7a3b2e"/><circle cx="24" cy="45" r="2" fill="#e9a93b"/>';
+else if(id==='trident')o='<line x1="24" y1="22" x2="24" y2="45" stroke="#5f8fa8" stroke-width="3.5" stroke-linecap="round"/><path d="M14 8V18Q24 25 34 18V8M24 4V24" stroke="#7fe0f0" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M11 9L14 2L17 9ZM21 6L24 0L27 6ZM31 9L34 2L37 9Z" fill="#cff6ff" stroke="#3f9fb8" stroke-width="1"/>';
+else if(id==='glaive')o='<line x1="22" y1="16" x2="22" y2="45" stroke="#6b4a2a" stroke-width="3.5" stroke-linecap="round"/>'+P('M22 3Q42 8 35 29L22 24Z','url(#i_st)')+'<path d="M24 8Q36 12 31 25" stroke="#fff" stroke-width="1" fill="none" opacity=".8"/><rect x="18" y="22" width="8" height="4" rx="2" fill="#c9a24a" '+S0+'/>';
+else if(id==='abyss')o='<circle cx="24" cy="18" r="15" fill="#7a5cff" opacity=".3"/>'+P('M24 1L30 8V31H18V8Z','url(#i_ab)')+'<path d="M24 4V29" stroke="#cbb8ff" stroke-width="1.2"/><rect x="13" y="31" width="22" height="4.5" rx="2" fill="#5a46b0" '+S0+'/><circle cx="24" cy="33" r="2" fill="#7ae0ff"/><rect x="22" y="35" width="4" height="9" fill="#2a2040"/>';
+else if(id==='moon')o='<circle cx="25" cy="20" r="14" fill="#9fc3e8" opacity=".3"/>'+P('M21 3Q38 18 29 35H21Q29 19 21 3Z','#dbe9f7')+'<rect x="15" y="34" width="18" height="4" rx="2" fill="#4a6fa5" '+S0+'/><rect x="22" y="38" width="4" height="7" fill="#3a2a22"/>';
+else o='<circle cx="24" cy="19" r="17" fill="#ffe08a" opacity=".4"/>'+P('M24 0L32 7V31H16V7Z','url(#i_gd)')+'<path d="M24 4V29" stroke="#fff6cc" stroke-width="1.4"/><rect x="11" y="31" width="26" height="5" rx="2.5" fill="#c9a24a" '+S0+'/><circle cx="24" cy="33.5" r="2" fill="#e0483a"/><rect x="22" y="36" width="4" height="9" fill="#5a3a22"/>'}
+else if(i.slot==='helm'){var g=m(i),pl=(i.pl||'').replace('url(#','url(#i_');
+if(i.pl)o+=P('M24 10Q20 -1 36 0Q29 4 29 11Z',pl);
+if(i.hn)o+=P('M11 22Q2 20 3 9Q8 16 14 17Z','#efe6d0')+P('M37 22Q46 20 45 9Q40 16 34 17Z','#efe6d0');
+o+=P('M10 30Q10 9 24 9Q38 9 38 30V35H10Z',g)+'<path d="M10 25H38V30H10Z" fill="#6d7a8a" '+S0+'/>';
+if(i.ch||i.cw)o+=P('M9 30L8 39Q10 43 16 44V35ZM39 30L40 39Q38 43 32 44V35Z',g);
+o+=P('M22 25H26V37L24 40L22 37Z','#aab5c2');
+if(i.cw)o+=P('M12 14L14 4L19 10L24 2L29 10L34 4L36 14Z','url(#i_gd)')+'<circle cx="24" cy="10" r="2" fill="#e0483a"/>'}
+else if(i.slot==='armor'){var k=i.kd,g=k==='lt'?'url(#i_lt)':k==='ch'?i.col:m(i);
+o=P('M14 9Q24 5 34 9L41 18L36 24V42Q24 46 12 42V24L7 18Z',g);
+if(k==='ch')o+='<path d="M14 9Q24 5 34 9L41 18L36 24V42Q24 46 12 42V24L7 18Z" fill="url(#i_mail)"/>';
+if(k==='lt')o+='<path d="M24 10V43" stroke="#2c1c10" stroke-width="1.5" stroke-dasharray="2 2" fill="none"/><path d="M14 10Q24 24 34 10" stroke="#2c1c10" stroke-width="2.5" fill="none"/>';
+if(k==='pl'){var f1=i.f1||'#8794a3',f2=i.f2||'#7a8796';o+='<path d="M24 8V36M13 20Q24 28 35 20" stroke="#4f5964" stroke-width="1.5" fill="none"/><path d="M12 36Q24 41 36 36L38 41Q24 47 10 41Z" fill="'+f1+'" '+S0+'/><circle cx="12" cy="17" r="4" fill="'+g+'" '+S0+'/><circle cx="36" cy="17" r="4" fill="'+g+'" '+S0+'/>'}
+else o+='<path d="M12 33H36" stroke="#3b2a1c" stroke-width="3"/><rect x="21" y="31" width="6" height="5" rx="1" fill="#c9a24a"/>';
+o+='<path d="M18 9Q24 16 30 9" stroke="#2a1d14" stroke-width="1.2" fill="none"/>'}
+else if(i.slot==='hands'){var g=m(i);
+o=P('M14 31H34V39H14Z','#8794a3')+P('M15 31V18Q15 13 20 13H30Q35 13 35 18V31Z',g)+'<path d="M20 13V24M25 13V24M30 13V24" stroke="#4f5964" stroke-width="1.2"/>'+P('M13 22Q9 22 9 27Q9 31 14 31V22Z',g);
+if(i.id==='spike')o+='<path d="M16 13L18 6L20 13ZM22 13L24 5L26 13ZM28 13L30 6L32 13Z" fill="#dde4ea" '+S0+'/>'}
+else if(i.slot==='boots'){var g=m(i);
+o=P('M14 5H29V27Q29 29 32 30L41 33Q44 35 42 39H13V5Z',g)+'<rect x="13" y="5" width="17" height="5" fill="#6d7a8a" '+S0+'/><rect x="11" y="39" width="33" height="4" rx="1.5" fill="#3a2e24"/><path d="M18 15H25M18 21H25" stroke="#4f5964" stroke-width="1.2"/><path d="M32 33Q36 33 39 35" stroke="#4f5964" stroke-width="1.2" fill="none"/>'}
+else if(i.slot==='cape'){
+o=P('M11 8H37L43 41Q24 47 5 41Z',i.col)+'<path d="M17 12Q14 28 12 42M24 11V45M31 12Q34 28 36 42" stroke="#000" stroke-width="1.5" opacity=".28" fill="none"/>'+P('M13 8Q24 16 35 8L37 13Q24 21 11 13Z','#ffffff22')+'<circle cx="24" cy="14" r="3" fill="#c9a24a" '+S0+'/>'}
+else if(i.slot==='shield'){
+if(i.id==='wood')o='<circle cx="24" cy="24" r="18" fill="#8a5a2c" '+S0+'/><path d="M13 12V36M19 7V41M24 6V42M29 7V41M35 12V36" stroke="#5a3a1c" stroke-width="1.3"/><circle cx="24" cy="24" r="18" fill="none" stroke="#4a4a52" stroke-width="3"/><circle cx="24" cy="24" r="5.5" fill="#aab5c2" '+S0+'/>';
+else if(i.id==='tower')o=P('M9 4H39V28Q39 40 24 45Q9 40 9 28Z',m(i))+'<path d="M9 16H39M9 28H39M24 4V45" stroke="#4f5964" stroke-width="1.6"/><path d="M9 4H39V28Q39 40 24 45Q9 40 9 28Z" fill="none" stroke="#5a6676" stroke-width="2.5"/><circle cx="24" cy="22" r="4" fill="#aab5c2" '+S0+'/>';
+else o=P('M7 6H41V24Q41 38 24 46Q7 38 7 24Z',m(i))+'<path d="M24 6V46M8 23H40" stroke="#4f5964" stroke-width="1.6"/><path d="M7 6H41V24Q41 38 24 46Q7 38 7 24Z" fill="none" stroke="#c9a24a" stroke-width="2.8"/><circle cx="24" cy="23" r="6" fill="'+(i.gem||'#c9a24a')+'" '+S0+'/>'}
+return '<svg viewBox="0 0 48 48" aria-hidden="true">'+o+'</svg>'}
+function swr(i){return '<span class="ic2" style="border-color:'+RAR[i.r||0].c+'">'+icoSvg(i)+'</span>'}
+function mg(i){var m=i&&i.mat;return m==='gd'?'url(#gd)':m==='mt'?'url(#mt)':m==='ab'?'url(#ab)':m==='rd'?'url(#rd)':m==='lt'?'url(#lt)':'url(#st)'}
+function cb(i){return S.c>=i.p&&S.cr>=(i.k||0)&&(!i.o||oget(i.o)>=i.on)}
+function ptxt(i){var t=i.p+' монет';if(i.k)t+=' · 💎 '+i.k;if(i.o)t+=' · '+by(ORES,i.o).ic+' '+by(ORES,i.o).n.toLowerCase()+' ×'+i.on;return t}
+function pay(i){S.c-=i.p;S.cr-=(i.k||0);if(i.o)oadd(i.o,-i.on)}
+function rleg(){return row('','Редкость предметов',RAR.map(function(r){return '<span class="rt" style="color:'+r.c+'">'+r.n+'</span>'}).join(' ')+'<br>Чем выше редкость, тем предмет дороже и тем сложнее его добыть: нужны кристаллы и особая руда.')}
+var BOSS=[
+{id:'slime',n:'Болотный слизень',ul:2,hp:85,atk:10,xp:50,c:40,cr:2,ore:2,ox:{copper:1},sp:'regen',spt:'Регенерация: +4 здоровья за ход.',
+ s:'<path d="M12 62Q8 28 40 24Q72 28 68 62Z" fill="#5fc46a" stroke="#2f7a3a" stroke-width="3"/><circle cx="30" cy="46" r="6" fill="#fff"/><circle cx="52" cy="46" r="6" fill="#fff"/><circle cx="31" cy="47" r="3" fill="#222"/><circle cx="53" cy="47" r="3" fill="#222"/>'},
+{id:'crab',n:'Каменный краб',ul:4,hp:170,atk:17,xp:100,c:80,cr:3,ore:3,ox:{copper:2},sp:'heavy',spt:'Тяжёлый удар: каждая третья атака вдвое сильнее.',
+ s:'<ellipse cx="40" cy="48" rx="24" ry="16" fill="#e0573f"/><circle cx="12" cy="30" r="9" fill="#e0573f"/><circle cx="68" cy="30" r="9" fill="#e0573f"/><circle cx="32" cy="38" r="4" fill="#fff"/><circle cx="48" cy="38" r="4" fill="#fff"/><circle cx="32" cy="38" r="2" fill="#222"/><circle cx="48" cy="38" r="2" fill="#222"/>'},
+{id:'guard',n:'Шестерёнчатый страж',ul:6,hp:310,atk:24,xp:170,c:130,cr:4,ore:4,ox:{silver:2},sp:'armor',spt:'Броня: получает на 15% меньше урона.',
+ s:'<circle cx="40" cy="42" r="26" fill="#8a97a6" stroke="#566273" stroke-width="6" stroke-dasharray="8 5"/><circle cx="40" cy="42" r="18" fill="#a7b4c2"/><circle cx="40" cy="42" r="8" fill="#ffb02e"/><circle cx="40" cy="42" r="3" fill="#222"/>'},
+{id:'ghost',n:'Призрак Маяка',ul:8,hp:480,atk:35,xp:300,c:230,cr:6,ore:6,ox:{silver:2,mithril:2,gold:1},sp:'rage',spt:'Ярость: ниже половины здоровья бьёт на 40% сильнее.',
+ s:'<path d="M16 66V36Q16 12 40 12Q64 12 64 36V66L55 58L47 66L40 58L33 66L25 58Z" fill="#cfe4ff" stroke="#7aa0d8" stroke-width="3"/><circle cx="31" cy="36" r="5" fill="#223"/><circle cx="49" cy="36" r="5" fill="#223"/><ellipse cx="40" cy="50" rx="5" ry="6" fill="#223"/>'},
+{id:'serpent',n:'Штормовой змей',ul:10,hp:670,atk:40,xp:420,c:320,cr:7,ore:8,ox:{mithril:3,gold:1},sp:'thorns',spt:'Колючая чешуя: возвращает Ноа 10% нанесённого урона.',
+ s:'<path d="M8 68Q8 50 24 52Q38 54 34 40Q30 26 46 22" fill="none" stroke="#2f9aa8" stroke-width="13" stroke-linecap="round"/><path d="M8 68Q8 50 24 52Q38 54 34 40Q30 26 46 22" fill="none" stroke="#6fd0d8" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 8" opacity=".7"/><ellipse cx="56" cy="22" rx="14" ry="10" fill="#3bb5c4" stroke="#1f6f7a" stroke-width="2"/><circle cx="58" cy="18" r="4" fill="#fff"/><circle cx="59" cy="18" r="2" fill="#222"/><path d="M48 28Q58 34 68 28" stroke="#1f3f4a" stroke-width="2" fill="none"/><path d="M52 29L54 34L56 29ZM60 29L62 34L64 29Z" fill="#fff"/><path d="M44 12L48 4L52 11ZM36 20L36 11L42 17Z" fill="#e9a93b"/><path d="M0 72Q10 66 20 72T40 72T60 72T80 72V80H0Z" fill="#1f5f8a" opacity=".8"/>'},
+{id:'reaper',n:'Жнец тумана',ul:12,hp:930,atk:51,xp:600,c:450,cr:9,ore:10,ox:{mithril:4,gold:2},sp:'drain',spt:'Похищение: лечится на 50% от нанесённого Ноа урона.',
+ s:'<path d="M20 70Q12 36 30 18Q40 8 52 18Q66 34 58 70L48 62L40 72L32 62Z" fill="#3a2a5a" stroke="#1a1030" stroke-width="3"/><ellipse cx="40" cy="34" rx="11" ry="12" fill="#0b0716"/><circle cx="35" cy="34" r="3" fill="#8af0ff"/><circle cx="45" cy="34" r="3" fill="#8af0ff"/><line x1="66" y1="10" x2="62" y2="76" stroke="#8a6a3a" stroke-width="3"/><path d="M66 10Q82 12 76 30Q74 20 66 18Z" fill="#cfd8e3" stroke="#6f8fb8" stroke-width="1.5"/>'},
+{id:'king',n:'Утонувший король',ul:14,hp:1250,atk:59,ar:.1,xp:850,c:650,cr:12,ore:12,ox:{mithril:5,gold:3},sp:'tide',spt:'Прилив: каждый второй удар на 30% сильнее. Броня: на 10% меньше урона.',
+ s:'<path d="M12 74Q10 44 40 40Q70 44 68 74Z" fill="#1f6f7a" stroke="#0f3a42" stroke-width="3"/><circle cx="40" cy="30" r="15" fill="#a8cdbf" stroke="#4f7f70" stroke-width="2"/><path d="M24 20L26 6L33 14L40 4L47 14L54 6L56 20Z" fill="#e9c24a" stroke="#8a6a1c" stroke-width="2"/><circle cx="34" cy="30" r="4" fill="#0e1a1a"/><circle cx="46" cy="30" r="4" fill="#0e1a1a"/><circle cx="34" cy="30" r="1.5" fill="#7af0d0"/><circle cx="46" cy="30" r="1.5" fill="#7af0d0"/><path d="M34 40Q40 36 46 40" stroke="#2a3f3a" stroke-width="2" fill="none"/><path d="M28 40Q26 54 32 62M40 42V64M52 40Q54 54 48 62" stroke="#3f9f6a" stroke-width="3" fill="none" stroke-linecap="round"/>'},
+{id:'shadow',n:'Тень Хранителя',ul:16,hp:1600,atk:66,ar:.1,xp:1300,c:1000,cr:16,ore:15,ox:{mithril:5,gold:6},sp:'rage',spt:'Ярость: ниже половины здоровья бьёт на 40% сильнее. Броня: на 10% меньше урона.',
+ s:'<path d="M14 72Q10 40 24 24L20 8L32 18Q40 14 48 18L60 8L56 24Q70 40 66 72L56 64L48 74L40 64L32 74L24 64Z" fill="#14101f" stroke="#6b4bb0" stroke-width="2.5"/><path d="M30 38L38 42L30 44Z" fill="#c9a2ff"/><path d="M50 38L42 42L50 44Z" fill="#c9a2ff"/><circle cx="40" cy="58" r="6" fill="#ffd45e" opacity=".9"/><path d="M40 52L43 58L40 64L37 58Z" fill="#fff6cc"/>'}];
+function tk(){var n=0;for(var k in S.kills)n+=S.kills[k];return n}
+function mw(){var m=0;for(var k in S.wl)m=Math.max(m,S.wl[k]);return m}
+var QUESTS=[
+{id:'q1',n:'Первые шаги',d:'Выполни 3 задания',g:3,v:function(){return S.total},c:20,xp:15,cr:0},
+{id:'q2',n:'Первая броня',d:'Купи первую экипировку',g:1,v:function(){return S.own.length},c:25,xp:20,cr:0},
+{id:'q3',n:'Опытный путник',d:'Достигни 3 уровня',g:3,v:function(){return S.lvl},c:40,xp:0,cr:1},
+{id:'q4',n:'Первая победа',d:'Победи любого босса',g:1,v:tk,c:40,xp:30,cr:2},
+{id:'q5',n:'Оружейник',d:'Купи второе оружие',g:2,v:function(){return S.wo.length},c:50,xp:30,cr:0},
+{id:'q6',n:'Закалка',d:'Прокачай предмет до уровня 2',g:2,v:mw,c:60,xp:40,cr:2},
+{id:'q7',n:'Постоянство',d:'Играй 3 дня подряд',g:3,v:function(){return S.streak},c:60,xp:30,cr:1},
+{id:'q9',n:'Укротитель бурь',d:'Победи Штормового змея',g:1,v:function(){return S.kills.serpent||0},c:200,xp:150,cr:6},
+{id:'q10',n:'Конец тени',d:'Победи Тень Хранителя',g:1,v:function(){return S.kills.shadow||0},c:600,xp:400,cr:12},
+{id:'q8',n:'Гроза механизмов',d:'Победи Шестерёнчатого стража',g:1,v:function(){return S.kills.guard||0},c:150,xp:100,cr:5}];
+var TITLES=['Новичок','Странник','Следопыт','Искатель','Охотник за тенями','Страж маяка'];
+function ds(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+function today(){return ds(new Date())}
+function yday(){var d=new Date();d.setDate(d.getDate()-1);return ds(d)}
+
+/* ===== звук ===== */
+var AC=null,musT=null,musI=0;
+function ac(){try{if(!AC){var C=window.AudioContext||window.webkitAudioContext;if(C)AC=new C()}if(AC&&AC.state==='suspended')AC.resume()}catch(e){AC=null}return AC}
+function tn(f,d,ty,v,w,f2){var a=ac();if(!a)return;try{var t=a.currentTime+(w||0),o=a.createOscillator(),g=a.createGain();o.type=ty||'sine';o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v||.1,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.03)}catch(e){}}
+function nzb(d,v,w){var a=ac();if(!a)return;try{var n=Math.floor(a.sampleRate*d),b=a.createBuffer(1,n,a.sampleRate),x=b.getChannelData(0);for(var i=0;i<n;i++)x[i]=(Math.random()*2-1)*(1-i/n);var s=a.createBufferSource(),g=a.createGain();s.buffer=b;g.gain.value=v||.1;s.connect(g);g.connect(a.destination);s.start(a.currentTime+(w||0))}catch(e){}}
+function sfx(n){if(!S||!S.snd||!S.snd.fx)return;
+if(n==='tap')tn(540,.05,'square',.03);
+else if(n==='hit'){nzb(.09,.12);tn(190,.12,'sawtooth',.1,0,60)}
+else if(n==='crit'){nzb(.12,.16);tn(220,.15,'sawtooth',.12,0,70);tn(900,.18,'square',.07,.03,1400)}
+else if(n==='hurt'){tn(150,.24,'sawtooth',.13,0,65);nzb(.08,.08)}
+else if(n==='skill')tn(280,.28,'sawtooth',.09,0,1000);
+else if(n==='heal'){tn(523,.12,'sine',.1);tn(659,.12,'sine',.1,.1);tn(784,.22,'sine',.1,.2)}
+else if(n==='win'){[523,659,784,1047].forEach(function(f,i){tn(f,.25,'triangle',.11,i*.12)})}
+else if(n==='lose'){[330,262,196].forEach(function(f,i){tn(f,.3,'triangle',.11,i*.18)})}
+else if(n==='buy'){tn(880,.06,'square',.05);tn(1175,.12,'square',.05,.07)}
+else if(n==='forge'){tn(1200,.09,'triangle',.1);tn(1600,.12,'triangle',.09,.09);nzb(.05,.06)}
+else if(n==='fail')tn(170,.22,'square',.07,0,100);
+else if(n==='up'){[523,659,784,1047,1319].forEach(function(f,i){tn(f,.18,'triangle',.09,i*.08)})}
+else if(n==='claim'){tn(660,.1,'sine',.1);tn(990,.18,'sine',.1,.1)}}
+function musTick(){if(!S.snd||!S.snd.mus||document.hidden){return}var N=[261.6,293.7,329.6,392,440,523.3,392,329.6],f=N[musI%N.length];tn(f,2.4,'sine',.03);if(musI%4===0)tn(130.8,4.2,'triangle',.028);if(musI%8===5)tn(f*2,1.6,'sine',.015);musI++}
+function musStart(){if(musT)return;if(!ac())return;musTick();musT=setInterval(musTick,1900)}
+function musStop(){if(musT){clearInterval(musT);musT=null}}
+function sndIcon(){return !S.snd||!S.snd.fx?'🔇':S.snd.mus?'🎵':'🔊'}
+try{document.addEventListener('visibilitychange',function(){if(document.hidden)musStop();else if(S&&S.snd&&S.snd.mus)musStart()})}catch(e){}
+/* ===== комплекты ===== */
+var SETS={mith:{n:'Мифрил',full:'Мифриловый комплект',b:[[2,{hp:.06}],[3,{atk:.06}],[5,{hp:.08,atk:.08}]]},abyss:{n:'Бездна',full:'Комплект Бездны',b:[[2,{hp:.08}],[4,{atk:.12}]]},beacon:{n:'Маяк',full:'Комплект Маяка',b:[[2,{atk:.06}],[3,{hp:.1,atk:.1}]]},ranger:{n:'Следопыт',full:'Комплект Следопыта',b:[[2,{hp:.05}],[4,{atk:.05}]]}};
+function setN(){var c={};for(var k in S.eq){var i=S.eq[k]&&by(CLO,S.eq[k]);if(i&&i.set)c[i.set]=(c[i.set]||0)+1}return c}
+function setB(){var c=setN(),r={hp:0,atk:0};for(var k in c){SETS[k].b.forEach(function(b){if(c[k]>=b[0]){r.hp+=b[1].hp||0;r.atk+=b[1].atk||0}})}return r}
+function btxt(o){var t=[];if(o.hp)t.push('+'+Math.round(o.hp*100)+'% здоровья');if(o.atk)t.push('+'+Math.round(o.atk*100)+'% атаки');return t.join(', ')}
+/* ===== питомцы ===== */
+var PETS=[{id:'crab',n:'Краб-малыш',p:250,ul:2,r:1,col:'#e0573f',b:{hp:.1},bt:'+10% здоровья'},{id:'fox',n:'Туманная лиса',p:500,ul:4,r:1,col:'#7d96b0',b:{crit:.06},bt:'+6% шанс крита'},{id:'fly',n:'Огонёк Маяка',p:800,k:2,ul:7,r:2,col:'#ffd45e',b:{xp:.1},bt:'+10% опыта'},{id:'owl',n:'Сова Хранителя',p:1300,k:4,o:'silver',on:4,ul:11,r:3,col:'#8a6a4a',b:{atk:.08},bt:'+8% атаки'}];
+function psat(id){var t=S.pets&&S.pets[id];if(t===undefined)return 0;return Math.max(0,Math.min(100,Math.round(100-(Date.now()-t)/3600000*10)))}
+function petB(){var b={hp:0,atk:0,crit:0,xp:0};if(S.pa&&S.pets&&S.pets[S.pa]!==undefined&&psat(S.pa)>=25){var p=by(PETS,S.pa);for(var k in p.b)b[k]=p.b[k]}return b}
+function petSvg(id){var o='';
+if(id==='crab')o='<path d="M16 40L8 30M48 40L56 30M20 46L12 52M44 46L52 52" stroke="#8a2a1c" stroke-width="3" stroke-linecap="round"/><circle cx="10" cy="24" r="8" fill="#e0573f" stroke="#8a2a1c" stroke-width="2"/><circle cx="54" cy="24" r="8" fill="#e0573f" stroke="#8a2a1c" stroke-width="2"/><path d="M6 20L10 24L6 28M58 20L54 24L58 28" stroke="#8a2a1c" stroke-width="2" fill="none"/><ellipse cx="32" cy="40" rx="19" ry="12" fill="#e0573f" stroke="#8a2a1c" stroke-width="2"/><path d="M26 30V24M38 30V24" stroke="#8a2a1c" stroke-width="2"/><circle cx="26" cy="22" r="4.5" fill="#fff" stroke="#8a2a1c" stroke-width="1.5"/><circle cx="38" cy="22" r="4.5" fill="#fff" stroke="#8a2a1c" stroke-width="1.5"/><circle cx="26.5" cy="22.5" r="2" fill="#222"/><circle cx="38.5" cy="22.5" r="2" fill="#222"/><path d="M28 44Q32 47 36 44" stroke="#8a2a1c" stroke-width="1.8" fill="none"/>';
+else if(id==='fox')o='<path d="M44 54Q64 50 58 26Q54 40 42 44Z" fill="#7d96b0" stroke="#3f5368" stroke-width="2"/><path d="M58 26Q61 36 56 44Q60 34 58 26Z" fill="#fff"/><path d="M16 58Q14 36 30 32Q46 36 44 58Z" fill="#7d96b0" stroke="#3f5368" stroke-width="2"/><path d="M24 58Q24 44 30 42Q36 44 36 58Z" fill="#e8eef5"/><path d="M20 30Q20 16 31 16Q42 16 42 30Q42 40 31 42Q20 40 20 30Z" fill="#7d96b0" stroke="#3f5368" stroke-width="2"/><path d="M21 22L19 8L29 16ZM41 22L43 8L33 16Z" fill="#7d96b0" stroke="#3f5368" stroke-width="2"/><path d="M22 14L23 18L26 16Z" fill="#f2b6c0"/><path d="M26 32Q31 40 36 32Q31 36 26 32Z" fill="#e8eef5"/><circle cx="26" cy="27" r="2.3" fill="#1a1410"/><circle cx="37" cy="27" r="2.3" fill="#1a1410"/><circle cx="31.5" cy="33" r="2" fill="#2a1d14"/>';
+else if(id==='fly')o='<circle cx="32" cy="34" r="26" fill="#ffe08a" opacity=".3"/><circle cx="32" cy="34" r="16" fill="#ffe9a8" opacity=".5"/><ellipse cx="17" cy="26" rx="10" ry="6" transform="rotate(-25 17 26)" fill="#cfeaff" opacity=".8" stroke="#8ab4d8"/><ellipse cx="47" cy="26" rx="10" ry="6" transform="rotate(25 47 26)" fill="#cfeaff" opacity=".8" stroke="#8ab4d8"/><circle cx="32" cy="36" r="12" fill="#ffd45e" stroke="#c9892a" stroke-width="2"/><circle cx="27" cy="34" r="2.3" fill="#3a2a10"/><circle cx="37" cy="34" r="2.3" fill="#3a2a10"/><path d="M28 40Q32 43 36 40" stroke="#8a5a14" stroke-width="1.8" fill="none"/><path d="M28 24Q26 16 22 14M36 24Q38 16 42 14" stroke="#c9892a" stroke-width="1.5" fill="none"/><circle cx="22" cy="14" r="2" fill="#ffe9a8"/><circle cx="42" cy="14" r="2" fill="#ffe9a8"/>';
+else o='<path d="M14 56Q10 28 32 12Q54 28 50 56Z" fill="#8a6a4a" stroke="#4a3622" stroke-width="2"/><path d="M20 24L16 10L28 16ZM44 24L48 10L36 16Z" fill="#8a6a4a" stroke="#4a3622" stroke-width="2"/><ellipse cx="32" cy="46" rx="11" ry="10" fill="#d9c3a0"/><path d="M26 42Q32 46 38 42M26 48Q32 52 38 48" stroke="#8a6a4a" stroke-width="1.5" fill="none"/><circle cx="24" cy="28" r="8" fill="#fff6dc" stroke="#4a3622" stroke-width="1.8"/><circle cx="40" cy="28" r="8" fill="#fff6dc" stroke="#4a3622" stroke-width="1.8"/><circle cx="24" cy="29" r="3.5" fill="#2a1d14"/><circle cx="40" cy="29" r="3.5" fill="#2a1d14"/><circle cx="25" cy="27.5" r="1.2" fill="#fff"/><circle cx="41" cy="27.5" r="1.2" fill="#fff"/><path d="M29 33L32 39L35 33Z" fill="#e9a93b" stroke="#a8761c"/><path d="M24 58V54M30 58V54M34 58V54M40 58V54" stroke="#e9a93b" stroke-width="2.5" stroke-linecap="round"/>';
+return '<svg viewBox="0 0 64 64" aria-hidden="true">'+o+'</svg>'}
+function petIco(p){return '<span class="ic2" style="border-color:'+RAR[p.r||0].c+'">'+petSvg(p.id)+'</span>'}
+/* ===== умения ===== */
+var ABIL=[{id:'pw',n:'Мощный удар',ic:'💥',d:function(r){return 'Удар ×'+(1.8+.2*r).toFixed(1)+' урона. Перезарядка 3 хода'}},{id:'hl',n:'Исцеление',ic:'💚',d:function(r){return 'Лечит '+(20+5*r)+'% здоровья. Перезарядка 5 ходов'}},{id:'st',n:'Оглушение',ic:'⚡',d:function(r){return 'Босс пропускает свою атаку. Перезарядка '+(6-r)+' хода'}}];
+function tickcd(){if(B&&B.cd)for(var k in B.cd)if(B.cd[k]>0)B.cd[k]--}
+/* ===== достижения ===== */
+function nboss(){var n=0;BOSS.forEach(function(b){if(S.kills[b.id])n++});return n}
+function nuniq(){var n=0;UNIQ.forEach(function(u){if(u.slot?S.own.indexOf(u.id)>-1:S.wo.indexOf(u.id)>-1)n++});return n}
+function nleg(){var n=0;S.own.forEach(function(id){var i=by(CLO,id);if(i&&i.r>=4)n++});S.wo.forEach(function(id){var w=by(W,id);if(w&&w.r>=4)n++});return n}
+function nfull(){var c=0;for(var k in SETS){if(CLO.filter(function(i){return i.set===k}).every(function(i){return S.own.indexOf(i.id)>-1}))c++}return c}
+var ACH=[
+{id:'a1',n:'Первая победа',d:'Победи любого босса',g:1,v:function(){return tk()},t:'Победитель',r:{c:50}},
+{id:'a2',n:'Охотник',d:'Одержи 10 побед над боссами',g:10,v:function(){return tk()},t:'Охотник на чудовищ',r:{c:150,cr:2}},
+{id:'a3',n:'Истребитель',d:'Победи всех восьмерых боссов',g:8,v:nboss,t:'Истребитель чудовищ',r:{c:600,cr:8}},
+{id:'a4',n:'Трудяга',d:'Выполни 30 заданий',g:30,v:function(){return S.total},t:'Трудяга',r:{c:120,cr:1}},
+{id:'a5',n:'Путешественник',d:'Вернись из 10 походов',g:10,v:function(){return S.xn||0},t:'Следопыт',r:{c:150,cr:2}},
+{id:'a6',n:'Коллекционер',d:'Собери 15 предметов',g:15,v:function(){return S.own.length+S.wo.length},t:'Коллекционер',r:{c:300,cr:3}},
+{id:'a7',n:'Обладатель легенды',d:'Получи легендарный предмет',g:1,v:nleg,t:'Обладатель легенды',r:{c:400,cr:5}},
+{id:'a8',n:'Мастер осколков',d:'Собери все 5 уникальных предметов',g:5,v:nuniq,t:'Мастер осколков',r:{c:500,cr:6}},
+{id:'a9',n:'Мастер-кузнец',d:'Прокачай предмет до 5 уровня',g:5,v:mw,t:'Мастер-кузнец',r:{c:300,cr:4}},
+{id:'a10',n:'Полный комплект',d:'Собери все предметы любого комплекта',g:1,v:nfull,t:'Комплектный',r:{c:400,cr:5}},
+{id:'a11',n:'Верный путник',d:'Играй 7 дней подряд',g:7,v:function(){return S.streak},t:'Верный путник',r:{c:200,cr:3}},
+{id:'a12',n:'Друг зверей',d:'Заведи питомца',g:1,v:function(){return Object.keys(S.pets||{}).length},t:'Друг зверей',r:{c:100}},
+{id:'a13',n:'Закалённый',d:'Достигни 10 уровня',g:10,v:function(){return S.lvl},t:'Закалённый',r:{c:300,cr:3}},
+{id:'a14',n:'Страж маяка',d:'Достигни 16 уровня',g:16,v:function(){return S.lvl},t:'Страж маяка',r:{c:800,cr:8}},
+{id:'a15',n:'Хранитель Маяка',d:'Пройди весь сюжет',g:13,v:function(){return S.ch},t:'Хранитель Маяка',r:{c:1000,cr:10}}];
+function curTitle(){var a=S.ti&&by(ACH,S.ti);return a?a.t:TITLES[Math.min(5,Math.floor((S.lvl-1)/2))]}
+function achNew(){return ACH.filter(function(a){return a.v()>=a.g&&S.ac.indexOf(a.id)<0}).length}
+function grant(rw){S.c+=rw.c||0;S.cr+=rw.cr||0}
+/* ===== события в походах ===== */
+function rnd(n){return Math.floor(Math.random()*n)}
+var EV=[
+{n:'Запертый сундук',t:'На тропе стоит старый сундук с ржавым замком. Можно попробовать его вскрыть.',o:[{t:'Вскрыть',f:function(){if(Math.random()<.55){var c=40+rnd(40);S.c+=c;S.cr+=1;return 'Замок поддался. Внутри '+c+' монет и кристалл.'}return 'Замок не поддался, а лом сломался. Ничего не найдено.'}},{t:'Пройти мимо',f:function(){return 'Ноа решил не рисковать и пошёл дальше.'}}]},
+{n:'Бродячий торговец',t:'Из тумана вышел торговец с мешком руды. «Три куска за 40 монет, путник».',o:[{t:'Купить (40 монет)',need:40,f:function(){S.c-=40;var a=ORES.filter(function(o){return S.lvl>=o.ul}),o=a[rnd(a.length)];oadd(o.id,3);return 'Ноа купил руду: '+o.ic+' '+o.n.toLowerCase()+' ×3.'}},{t:'Отказаться',f:function(){return 'Торговец пожал плечами и растворился в тумане.'}}]},
+{n:'Раненый путник',t:'У дороги сидит раненый путник и просит помочь добраться до порта.',o:[{t:'Помочь',f:function(){gain(60,0,0);if(Math.random()<.4){S.pot.p2++;return 'Путник благодарен: +60 опыта и зелье энергии в подарок.'}return 'Путник благодарен. Ноа получил 60 опыта.'}},{t:'Пройти мимо',f:function(){return 'Ноа пошёл дальше, но на душе было неспокойно.'}}]},
+{n:'Старый алтарь',t:'В кустах стоит заброшенный алтарь с углублением для монет.',o:[{t:'Оставить 30 монет',need:30,f:function(){S.c-=30;if(Math.random()<.6){S.cr+=2;return 'Алтарь вспыхнул. Ноа нашёл 2 кристалла.'}return 'Алтарь промолчал. Монеты пропали.'}},{t:'Не трогать',f:function(){return 'Ноа обошёл алтарь стороной.'}}]},
+{n:'Логово зверя',t:'Из пещеры доносится рык. Там может быть добыча, а может быть беда.',o:[{t:'Напасть',f:function(){if(Math.random()<Math.min(.8,.5+S.lvl*.02)){gain(80,40,0);return 'Ноа одолел зверя. +80 опыта и 40 монет.'}S.en=Math.max(0,S.en-3);return 'Зверь оказался сильнее. Ноа потерял 3 энергии.'}},{t:'Обойти',f:function(){gain(10,0,0);return 'Ноа тихо обошёл пещеру. +10 опыта.'}}]},
+{n:'Тайник в руинах',t:'Среди обломков виден свежий след лопаты. Кто-то прятал здесь что-то ценное.',o:[{t:'Раскопать',f:function(){if(Math.random()<.5){var u=UNIQ[rnd(UNIQ.length)];S.sh[u.id]=(S.sh[u.id]||0)+1;return 'Ноа откопал осколок: '+u.n+'.'}var c=20+rnd(30);S.c+=c;return 'В тайнике было лишь '+c+' монет.'}},{t:'Пропустить',f:function(){return 'Ноа не стал копаться в чужих тайнах.'}}]}];
+function migrate(){S.pets=S.pets||{};S.pa=S.pa||null;S.sk=S.sk||{pw:0,hl:0,st:0};S.snd=S.snd||{fx:1,mus:0};S.ac=S.ac||[];S.ti=S.ti||null;S.xn=S.xn||0}
+function load(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}}
+var TG=window.Telegram&&Telegram.WebApp,CS=TG&&TG.CloudStorage&&TG.isVersionAtLeast&&TG.isVersionAtLeast('6.9')?TG.CloudStorage:null,cst=null;
+function save(){S.ts=Date.now();var j=JSON.stringify(S);try{localStorage.setItem(KEY,j)}catch(e){}
+if(CS&&j.length<4000){clearTimeout(cst);cst=setTimeout(function(){try{CS.setItem('noa',j)}catch(e){}},1500)}}
+function fresh(){return{eye:rndEye(),eyeSet:0,lg:{d:'',n:0},lvl:1,xp:0,c:20,cr:0,ore:0,ox:{copper:0,silver:0,mithril:0,gold:0},pot:{p1:0,p2:0,p3:0},pts:0,en:15,ch:0,seen:{},sh:{},exp:null,t:Date.now(),day:today(),done:[],streak:1,total:0,own:[],eq:{},qc:[],chest:false,st:{str:0,agi:0,vit:0},wo:['staff'],we:'staff',wl:{staff:0},kills:{}}}
+var S=load()||fresh(),tab='hero',last=null;S.eye=S.eye||rndEye();S.ox=S.ox||{copper:0,silver:0,mithril:0,gold:0};S.lg=S.lg||{d:'',n:0};MAXEN=14+S.lvl;S.ore=S.ore||0;S.pot=S.pot||{p1:0,p2:0,p3:0};S.wl=S.wl||{};S.ch=S.ch||0;S.seen=S.seen||{};S.sh=S.sh||{};S.exp=S.exp||null;migrate();
+S.own=S.own.filter(function(i){return by(CLO,i)});for(var k in S.eq)if(!by(CLO,S.eq[k]))delete S.eq[k];
+function newDay(){if(S.day!==today()){var y=yday();S.streak=S.day===y?S.streak+1:1;S.day=today();S.done=[];S.chest=false}}
+var ENMS=300000;
+function regen(){MAXEN=14+S.lvl;var n=Date.now();if(S.en>=MAXEN){S.t=n;return}var g=Math.floor((n-S.t)/ENMS);if(g>0){S.en=Math.min(MAXEN,S.en+g);S.t=S.en>=MAXEN?n:S.t+g*ENMS}}
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.className='s';clearTimeout(toast.h);toast.h=setTimeout(function(){t.className=''},2400)}
+function need(l){return Math.round(50*l*(1+.12*(l-1)))}
+function gain(xp,c,cr){xp=Math.round(xp*(1+petB().xp));S.xp+=xp;S.c+=c;S.cr+=(cr||0);while(S.xp>=need(S.lvl)){S.xp-=need(S.lvl);S.lvl++;S.pts++;S.c+=10;MAXEN=14+S.lvl;S.en+=1;sfx('up');toast('Уровень '+S.lvl+'! +1 очко навыков, +10 монет, максимум энергии '+MAXEN)}}
+function wdmg(){var w=by(W,S.we);return w.d*(1+.25*(S.wl[w.id]||0))}
+function ist(i,k,l){return Math.round((i[k]||0)*(1+(k==='atk'?.4:.2)*l))}
+function eqs(k){var n=0;for(var t in S.eq){var i=S.eq[t]&&by(CLO,S.eq[t]);if(i)n+=ist(i,k,S.wl[i.id]||0)}return n}
+function patk(){return Math.round((4+S.lvl*2+S.st.str*2+wdmg()+eqs('atk'))*(1+setB().atk+petB().atk))}
+function php(){return Math.round((40+S.lvl*7+S.st.vit*10+eqs('hp'))*(1+setB().hp+petB().hp))}
+function fight(b){
+var hp=php(),bh=b.hp,a=patk(),log=[],r=0;
+while(hp>0&&bh>0&&r<40){r++;
+var cr=Math.random()<.1+S.st.agi*.04,d=Math.round(a*(.85+Math.random()*.3)*(cr?1.8:1));
+bh-=d;log.push('Ноа бьёт: '+d+(cr?' (крит)':''));
+if(bh<=0)break;
+if(Math.random()<S.st.agi*.03){log.push(b.n+' промахивается')}else{var e=Math.round(b.atk*(.85+Math.random()*.3));hp-=e;log.push(b.n+' бьёт: '+e)}}
+return{win:bh<=0,log:log}}
+function wsvg(id){
+if(id==='staff')return'<line x1="150" y1="92" x2="150" y2="226" stroke="#a67c52" stroke-width="6" stroke-linecap="round"/>';
+if(id==='bow')return'<path d="M146 96Q182 160 146 224" stroke="#8a5a2c" stroke-width="6" fill="none" stroke-linecap="round"/><line x1="146" y1="96" x2="146" y2="224" stroke="#f1e6c8" stroke-width="2"/>';
+if(id==='dagger')return'<path d="M150 110L159 150L150 196L141 150Z" fill="#cfe0f5" stroke="#6f8fb8" stroke-width="2"/><rect x="138" y="190" width="24" height="6" rx="3" fill="#6a4fd0"/><rect x="147" y="196" width="6" height="16" fill="#5a3a2a"/>';
+if(id==='spark')return'<line x1="150" y1="92" x2="150" y2="226" stroke="#7a5a3a" stroke-width="6" stroke-linecap="round"/><circle cx="150" cy="84" r="22" fill="#f3d08a" opacity=".35"/><circle cx="150" cy="84" r="10" fill="#ffe9a8" stroke="#e9a93b" stroke-width="2"/>';
+if(id==='moon')return'<circle cx="150" cy="130" r="28" fill="#9fc3e8" opacity=".25"/><path d="M148 66Q180 112 158 188H146Q164 118 148 66Z" fill="#dbe9f7" stroke="#6f8fb8" stroke-width="2"/><path d="M148 68Q170 110 154 186" stroke="#fff" stroke-width="1" fill="none" opacity=".8"/><rect x="136" y="186" width="28" height="6" rx="3" fill="#4a6fa5"/><rect x="146" y="192" width="8" height="18" fill="#3a2a22"/>';
+if(id==='light')return'<circle cx="150" cy="120" r="40" fill="#ffe08a" opacity=".35"/><path d="M150 34L164 66V184H136V66Z" fill="url(#gd)" stroke="#8a6a1c" stroke-width="2"/><path d="M150 40V180" stroke="#fff6cc" stroke-width="1.5" opacity=".9"/><rect x="124" y="182" width="52" height="8" rx="4" fill="#c9a24a"/><circle cx="150" cy="186" r="4" fill="#e0483a"/><rect x="146" y="190" width="8" height="20" fill="#5a3a22"/>';
+if(id==='trident')return'<line x1="150" y1="100" x2="150" y2="226" stroke="#5f8fa8" stroke-width="6" stroke-linecap="round"/><path d="M134 80V98Q150 110 166 98V80M150 70V108" stroke="#7fe0f0" stroke-width="4.5" fill="none" stroke-linecap="round"/><path d="M130 82L134 66L138 82ZM146 72L150 56L154 72ZM162 82L166 66L170 82Z" fill="#cff6ff" stroke="#3f9fb8"/><circle cx="150" cy="110" r="5" fill="#2fb5c8"/>';
+if(id==='glaive')return'<line x1="150" y1="90" x2="150" y2="228" stroke="#6b4a2a" stroke-width="6" stroke-linecap="round"/><path d="M150 26Q186 46 168 104L150 96Z" fill="url(#st)" stroke="#4f5964" stroke-width="2"/><path d="M152 34Q176 50 164 96" stroke="#fff" stroke-width="1.5" fill="none" opacity=".8"/><rect x="142" y="92" width="16" height="8" rx="3" fill="#c9a24a"/>';
+if(id==='abyss')return'<circle cx="150" cy="120" r="44" fill="#7a5cff" opacity=".28"/><path d="M150 30L166 70V184H134V70Z" fill="url(#ab)" stroke="#2a1f5a" stroke-width="2"/><path d="M150 36V180" stroke="#cbb8ff" stroke-width="1.5" opacity=".8"/><rect x="122" y="182" width="56" height="8" rx="4" fill="#5a46b0"/><circle cx="150" cy="186" r="4" fill="#7ae0ff"/><rect x="146" y="190" width="8" height="20" fill="#2a2040"/>';
+return'<circle cx="150" cy="130" r="30" fill="#ffd46a" opacity=".3"/><path d="M150 70L158 100V186H142V100Z" fill="#fff0b8" stroke="#e9a93b" stroke-width="2"/><rect x="132" y="184" width="36" height="7" rx="3" fill="#e9a93b"/><rect x="146" y="191" width="8" height="18" fill="#7a3b2e"/>'}
+function hero(){
+var q=S.eq,tired=S.en<4,s='',P=q.armor;
+var PI=P&&by(CLO,P),PK=PI?PI.kd:'',G=PI?mg(PI):'url(#st)',af=PK==='pl'?G:PK==='ch'?PI.col:PK==='lt'?'url(#lt)':'url(#sk)';
+var A='M62 100Q44 102 40 124Q38 140 42 152Q44 160 46 164L60 166Q64 150 66 138Q72 118 74 104Z';
+var SH='M20 126H64V158Q64 190 42 202Q20 190 20 158Z';
+var TUN='M57 102Q100 90 143 102Q140 128 129 150L127 164Q131 182 130 190Q100 197 70 190Q69 182 73 164L71 150Q60 128 57 102Z';
+function boot(){var bf=mg(by(CLO,q.boots));return '<path d="M66 195H99L98 213L100 222Q86 229 63 226Q59 222 64 217L68 211Z" fill="'+bf+'"/><path d="M65 194H100V201H65Z" fill="#6d7a8a"/><path d="M67 208H98" stroke="#4f5964" fill="none"/><path d="M63 220Q75 216 89 222" stroke="#4f5964" stroke-opacity=".6" fill="none"/>'}
+function arm(){var r='<path d="'+A+'" fill="'+af+'"/>';
+if(PK==='ch')r+='<path d="'+A+'" fill="url(#mail)"/>';
+if(!P)r+='<path d="M46 116Q40 130 47 142" stroke="#fff" stroke-opacity=".28" stroke-width="2" fill="none"/><path d="M68 112Q71 132 64 150" stroke="#000" stroke-opacity=".25" stroke-width="2" fill="none"/><path d="M50 106Q60 112 68 106" stroke="#000" stroke-opacity=".22" fill="none"/><path d="M47 148Q52 154 56 162" stroke="#000" stroke-opacity=".2" fill="none"/><path d="M42 152L62 156L61 162L43 158Z" fill="#e9a93b"/>';
+if(P)r+='<path d="M42 151L62 155L61 162L43 158Z" fill="'+(PK==='lt'?'#3b2a1c':PK==='ch'?'#434d59':'#6d7a8a')+'"/>'+(PK==='pl'?'<circle cx="47" cy="135" r="7" fill="'+G+'"/><path d="M41 143Q52 147 63 145" stroke="#4f5964" fill="none"/>':'');
+return r}
+function hand(){return q.hands?'<path d="M41 152H65L64 162H42Z" fill="#8794a3"/><path d="M45 161Q39 172 46 180Q56 186 66 179Q70 170 65 161Z" fill="'+mg(by(CLO,q.hands))+'"/><path d="M48 167H64M49 172H65M50 177H63" stroke="#4f5964" fill="none"/>':'<path d="M47 158Q42 168 48 175Q56 180 64 174Q68 166 64 158Z" fill="url(#sk)"/><path d="M50 167H62M50 171H62" stroke="#7a4f34" fill="none"/>'}
+function eye(){return tired?'<path d="M80 70Q88 75 96 70" stroke="#2a1d14" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M80 73.5Q88 77 96 73.5" stroke="#000" stroke-opacity=".1" fill="none"/><path d="M77 58Q88 51 99 56" stroke="#2a1d14" stroke-width="2.2" fill="none" stroke-linecap="round"/>':'<path d="M80 69Q88 61.5 96 69Q88 76.5 80 69Z" fill="#f7f2ea"/><circle cx="88" cy="69" r="3.9" fill="'+EC()+'" stroke="none"/><circle cx="88" cy="69" r="1.9" fill="#1a1410" stroke="none"/><circle cx="89.6" cy="67.5" r="1.4" fill="#fff" stroke="none"/><path d="M79 69Q88 60.5 97 69" stroke="#2a1d14" stroke-width="1.6" fill="none"/><path d="M77 58Q88 51 99 56" stroke="#2a1d14" stroke-width="2.2" fill="none" stroke-linecap="round"/>'}
+s+='<svg class="hsvg" viewBox="0 -14 200 254" role="img" aria-label="Ноа, суровый воин"><defs><linearGradient id="st" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef2f6"/><stop offset="1" stop-color="#6d7a8a"/></linearGradient><linearGradient id="sk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e3b992"/><stop offset="1" stop-color="#b07c58"/></linearGradient><linearGradient id="lt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8c6239"/><stop offset="1" stop-color="#4d2f19"/></linearGradient><linearGradient id="ln" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#cdbf9f"/><stop offset="1" stop-color="#8d8068"/></linearGradient><linearGradient id="tk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3f7088"/><stop offset="1" stop-color="#1f3445"/></linearGradient><linearGradient id="gd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset="1" stop-color="#b8892a"/></linearGradient><linearGradient id="rd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d44a3c"/><stop offset="1" stop-color="#7a1f26"/></linearGradient><linearGradient id="mt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d8f2ff"/><stop offset="1" stop-color="#3f7fb0"/></linearGradient><linearGradient id="ab" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b8a4ff"/><stop offset="1" stop-color="#34246e"/></linearGradient><pattern id="mail" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="2.2" fill="none" stroke="#434d59" stroke-width="1"/></pattern></defs><ellipse cx="100" cy="229" rx="52" ry="7" fill="#000" opacity=".28"/><g class="bob" stroke="#2a1d14" stroke-width="1.2" stroke-linejoin="round">';
+if(q.cape)s+='<path d="M62 100Q42 150 38 208Q100 226 162 208Q158 150 138 100Z" fill="'+by(CLO,q.cape).col+'"/><path d="M70 110Q58 160 56 210M100 112V218M130 110Q142 160 144 210" stroke="#000" stroke-opacity=".28" fill="none"/>';
+s+='<path d="M72 168Q65 192 72 216H97Q98 192 101 170Z" fill="#2f3a46"/><path d="M101 170Q102 192 103 216H128Q135 192 128 168Z" fill="#2a3440"/><path d="M72 172Q69 194 72 214M128 172Q131 194 128 214" stroke="#e9a93b" stroke-width="2" fill="none"/><path d="M80 176Q84 190 82 204M120 176Q116 190 118 204M76 192Q86 196 96 192M104 194Q114 198 124 194" stroke="#000" stroke-opacity=".28" fill="none"/>';
+if(q.boots)s+=boot()+'<g transform="translate(200 0) scale(-1 1)">'+boot()+'</g>';
+else s+='<path d="M71 212H97L99 224Q84 229 68 224Z" fill="url(#sk)"/><path d="M103 212H129L132 224Q116 229 101 224Z" fill="url(#sk)"/><path d="M72 198H97V205H72ZM103 198H128V205H103Z" fill="#a89878"/><path d="M74 226V222M80 227V223M86 227V223M106 227V223M112 227V223M118 226V222" stroke="#7a4f34" fill="none"/>';
+s+='<path d="M58 102Q100 90 142 102Q138 130 126 150L123 174Q100 182 77 174L74 150Q62 130 58 102Z" fill="url(#sk)"/>';
+if(!P)s+='<path d="M86 113Q100 126 114 113M100 108V128" stroke="#7a4f34" stroke-opacity=".55" fill="none"/><path d="M66 104L84 100L100 128L116 100L134 104Q132 128 124 148L121 174Q100 182 79 174L76 148Q68 128 66 104Z" fill="url(#tk)"/><path d="M100 132V177M88 146H112M90 158H110" stroke="#000" stroke-opacity=".22" fill="none"/><path d="M69 112Q73 142 78 172M131 112Q127 142 122 172" stroke="#e9a93b" stroke-width="2" fill="none"/><path d="M78 172Q100 180 122 172" stroke="#e9a93b" stroke-width="2" fill="none"/>';
+if(PK==='lt')s+='<path d="'+TUN+'" fill="url(#lt)"/><path d="M100 104V192" stroke="#2c1c10" stroke-dasharray="3 3" fill="none"/><path d="M68 105Q84 124 100 142Q116 124 132 105" stroke="#2c1c10" stroke-width="4" fill="none"/><path d="M72 190Q100 197 128 190" stroke="#2c1c10" stroke-width="3" fill="none"/><path d="M82 150L84 190M118 150L116 190" stroke="#000" stroke-opacity=".25" fill="none"/>';
+if(PK==='ch')s+='<path d="'+TUN+'" fill="'+af+'"/><path d="'+TUN+'" fill="url(#mail)"/><path d="M71 188Q100 195 129 188V192Q100 199 71 192Z" fill="#434d59"/><path d="M80 100Q100 114 120 100" stroke="#434d59" stroke-width="4" fill="none"/><path d="M82 150L84 190M118 150L116 190" stroke="#000" stroke-opacity=".22" fill="none"/>';
+if(PK==='pl'){var F1=PI.f1||'#8794a3',F2=PI.f2||'#7a8796';s+='<path d="M59 101Q100 89 141 101Q138 128 127 150L126 166Q100 174 74 166L73 150Q62 128 59 101Z" fill="'+G+'"/><path d="M100 96V170" stroke="#4f5964" stroke-width="2" fill="none"/><path d="M68 118Q100 134 132 118M70 134Q100 150 130 134" stroke="#4f5964" fill="none"/><path d="M74 166Q100 174 126 166L131 178Q100 188 69 178Z" fill="'+F1+'"/><path d="M69 178Q100 188 131 178L132 190Q100 199 68 190Z" fill="'+F2+'"/><path d="M72 172Q100 181 128 172M71 184Q100 194 129 184" stroke="#4f5964" fill="none"/><circle cx="82" cy="110" r="2" fill="#dde4ea"/><circle cx="118" cy="110" r="2" fill="#dde4ea"/>'}
+if(q.cape)s+='<path d="M80 99Q100 113 120 99L125 107Q100 124 75 107Z" fill="'+by(CLO,q.cape).col+'"/><circle cx="100" cy="113" r="3.6" fill="#c9a24a"/>';
+s+='<path d="'+(P?'M69 156H131V166H69Z':'M74 156H126V166H74Z')+'" fill="url(#lt)"/><rect x="94" y="157" width="12" height="12" rx="2" fill="#c9a24a"/><rect x="97" y="160" width="6" height="6" fill="none" stroke="#6b5420"/><path d="M116 168H130V184Q130 186 128 186H118Q116 186 116 184Z" fill="#5a3d22"/>';
+if(q.shield){var SI=by(CLO,q.shield);if(q.shield!=='wood')s+='<path d="M6 134H62V164Q62 192 34 206Q6 192 6 164Z" fill="'+mg(SI)+'"/><path d="M34 136V204M8 164H60" stroke="#4f5964" stroke-width="2.5" fill="none"/><path d="M6 134H62V164Q62 192 34 206Q6 192 6 164Z" fill="none" stroke="#c9a24a" stroke-width="3"/><circle cx="34" cy="164" r="7" fill="'+(SI.gem||'#c9a24a')+'"/>';
+else s+='<circle cx="34" cy="162" r="30" fill="#8a5a2c"/><path d="M20 140V184M27 134V190M34 132V192M41 134V190M48 140V184" stroke="#5a3a1c" fill="none"/><circle cx="34" cy="162" r="30" fill="none" stroke="#4a4a52" stroke-width="4"/><circle cx="34" cy="162" r="8" fill="#aab5c2"/><circle cx="34" cy="162" r="3" fill="#4f5964"/><g fill="#aab5c2" stroke="none"><circle cx="34" cy="138" r="1.8"/><circle cx="34" cy="186" r="1.8"/><circle cx="10" cy="162" r="1.8"/><circle cx="58" cy="162" r="1.8"/></g>'}
+s+=arm();s+=hand();
+s+='<g'+(['dagger','blade','moon','light','abyss'].indexOf(S.we)>-1?' transform="translate(0,-32)"':'')+'>'+wsvg(S.we)+'</g>';
+s+='<g transform="translate(200 0) scale(-1 1)">'+arm()+hand()+'</g>';
+if(P){var PC=PK==='lt'?'url(#lt)':PK==='ch'?af:G,PL='M42 106Q42 90 62 92Q78 96 74 114Q58 118 42 106Z',PR='M158 106Q158 90 138 92Q122 96 126 114Q142 118 158 106Z';s+='<path d="'+PL+'" fill="'+PC+'"/><path d="'+PR+'" fill="'+PC+'"/>'+(PK==='ch'?'<path d="'+PL+' '+PR+'" fill="url(#mail)"/>':'<path d="M47 105Q60 100 70 106M153 105Q140 100 130 106" stroke="'+(PK==='lt'?'#2c1c10':'#4f5964')+'" fill="none"/>')}
+s+='<path d="M86 82V103Q100 112 114 103V82Z" fill="#b07c58"/><ellipse cx="71" cy="68" rx="4" ry="7" fill="url(#sk)"/><ellipse cx="129" cy="68" rx="4" ry="7" fill="url(#sk)"/><path d="M71 52Q71 32 100 30Q129 32 129 52V68Q129 88 117 97Q109 104 100 104Q91 104 83 97Q71 88 71 68Z" fill="url(#sk)"/><path d="M120 60Q127 76 118 92Q110 100 100 103Q112 98 118 84Q122 72 120 60Z" fill="#000" opacity=".13" stroke="none"/>';
+s+='<path d="M70 56Q68 28 100 26Q132 28 130 56Q124 42 112 40Q100 46 88 40Q76 42 70 56Z" fill="#231a14"/><path d="M80 36L84 44M96 32L98 42M112 34L110 42M122 40L118 46" stroke="#3a2c22" fill="none"/>';
+s+='<path d="M75 82Q84 97 100 102Q116 97 125 82" stroke="#000" stroke-opacity=".08" fill="none"/>';
+s+=eye()+'<g transform="translate(200 0) scale(-1 1)">'+eye()+'</g>';
+s+='<path d="M100 66L96 84Q100 88 104 84Z" fill="#a8744f" opacity=".5" stroke="none"/><path d="M96 84Q100 87 104 84" stroke="#6a4430" fill="none"/><circle cx="79" cy="83" r="7" fill="#ea8a78" opacity=".34" stroke="none"/><circle cx="121" cy="83" r="7" fill="#ea8a78" opacity=".34" stroke="none"/>';
+s+=(tired?'<path d="M92 97.5Q100 95 108 97.5" stroke="#7a3a30" stroke-width="2.2" fill="none" stroke-linecap="round"/>':'<path d="M92.5 95.2Q100 99 107.5 95.2" stroke="#7a3a30" stroke-width="2.2" fill="none" stroke-linecap="round"/>');
+
+if(q.helm){var HI=by(CLO,q.helm),HG=mg(HI);s+='<path d="M68 56Q68 24 100 22Q132 24 132 56L126 54Q100 40 74 54Z" fill="'+HG+'"/><path d="M70 52Q100 40 130 52V58Q100 46 70 58Z" fill="#6d7a8a"/><path d="M97 52H103V76L100 80L97 76Z" fill="#aab5c2"/><circle cx="78" cy="54" r="1.6" fill="#dde4ea"/><circle cx="122" cy="54" r="1.6" fill="#dde4ea"/>';
+if(HI.hn)s+='<path d="M70 50Q56 46 56 28Q64 40 74 42ZM130 50Q144 46 144 28Q136 40 126 42Z" fill="#efe6d0" stroke="#8a7a5a"/>';if(HI.cw)s+='<path d="M70 30L72 12L86 24L100 6L114 24L128 12L130 30Z" fill="url(#gd)" stroke="#8a6a1c" stroke-width="1.5"/><circle cx="100" cy="16" r="3" fill="#e0483a"/>';if(HI.ch)s+='<path d="M68 56L67 82Q70 93 80 98L78 90Q74 82 75 58ZM132 56L133 82Q130 93 120 98L122 90Q126 82 125 58Z" fill="'+HG+'"/><path d="M100 22Q90 -4 126 -8Q110 8 114 24Z" fill="'+HI.pl+'"/>'}
+return s+'</g></svg>'}
+function pdmg(){var c=Math.random()<.1+S.st.agi*.04+petB().crit;return{d:Math.round(patk()*(.85+Math.random()*.3)*(c?1.8:1)),cr:c}}
+var B=null;
+function openBattle(id){var b=by(BOSS,id),m=php();S.en-=3;B={b:b,bh:b.hp,bmax:b.hp,ph:m,pmax:m,cd:{pw:0,hl:0,st:0},stun:0,log:['Бой начался. '+b.spt],over:0,blk:false,busy:false,anim:'',hit:'',num:null}}
+function bturn(){setTimeout(function(){if(!B)return;var b=B.b,e=Math.random()<S.st.agi*.03?0:Math.round(b.atk*(.85+Math.random()*.3));B.t=(B.t||0)+1;if(B.stun){B.stun=0;B.log.push(b.n+' оглушён и пропускает атаку');B.num={t:'оглушён',w:'p'};B.anim='';B.hit='';B.busy=false;drawBattle();return}if(b.sp==='heavy'&&B.t%3===0&&e){e*=2;B.log.push(b.n+' наносит тяжёлый удар')}if(b.sp==='rage'&&B.bh<B.bmax/2)e=Math.round(e*1.4);if(b.sp==='tide'&&B.t%2===0&&e){e=Math.round(e*1.3);B.log.push(b.n+' поднимает прилив')}if(b.sp==='regen'&&B.bh<B.bmax){B.bh=Math.min(B.bmax,B.bh+4);B.log.push(b.n+' регенерирует')}if(B.blk)e=Math.round(e/2);B.blk=false;
+if(e===0){B.log.push(b.n+' промахивается');B.num={t:'промах',w:'p'}}else{B.ph-=e;sfx('hurt');B.log.push(b.n+' бьёт: '+e);B.num={t:'-'+e,w:'p'};if(b.sp==='drain'){var hl=Math.round(e*.5);B.bh=Math.min(B.bmax,B.bh+hl);B.log.push(b.n+' похищает силу: +'+hl)}}
+B.anim='bo';B.hit='p';if(B.ph<=0){B.over=-1;sfx('lose');B.log.push('Ноа повержен. Прокачай навыки и оружие.')}
+B.busy=false;drawBattle()},700)}
+function winBattle(){var b=B.b,f=!S.kills[b.id];S.kills[b.id]=(S.kills[b.id]||0)+1;var x=f?b.xp:Math.round(b.xp/2),c=f?b.c:Math.round(b.c/2),k=f?b.cr:1,o=f?b.ore:1,l0=S.lvl;gain(x,c,k);S.ore+=o;var xo={};for(var ok in (b.ox||{})){var nn=f?b.ox[ok]:Math.ceil(b.ox[ok]/2);oadd(ok,nn);xo[ok]=nn}B.prize={x:x,c:c,k:k,o:o,xo:xo,first:f,lv:S.lvl>l0};B.log.push('Победа!');sfx('win')}
+function victoryHtml(){var p=B.prize,b=B.b;return '<div class="bw vic"><div class="vt">Победа!</div><div class="vs">'+b.n+' повержен'+(p.first?'. Первая победа, награда полная':'. Повторная победа, награда вдвое меньше')+'</div><svg viewBox="0 0 80 80" style="width:84px;height:84px;filter:grayscale(.7);opacity:.85" aria-hidden="true">'+b.s+'</svg><div class="prz"><div><span>✨</span><b>+'+p.x+'</b>опыт</div><div><span>🪙</span><b>+'+p.c+'</b>монет</div><div><span>💎</span><b>+'+p.k+'</b>кристаллов</div><div><span>🔩</span><b>+'+p.o+'</b>руды</div></div>'+(Object.keys(p.xo||{}).length?'<div class="gi">Добыча: '+Object.keys(p.xo).map(function(k){return by(ORES,k).ic+' '+by(ORES,k).n+' ×'+p.xo[k]}).join(', ')+'</div>':'')+(p.lv?'<div class="gi">Новый уровень: '+S.lvl+'. Получено очко навыков.</div>':'')+'<div class="bs" style="justify-content:center"><button class="buy" data-a="end">Продолжить</button></div></div>'}
+function drawBattle(){var el=document.getElementById('battle');
+if(!B){el.hidden=true;el.innerHTML='';return}
+el.hidden=false;if(B.vic&&B.prize){el.innerHTML=victoryHtml();return}var b=B.b,ph=Math.max(0,B.ph),bh=Math.max(0,B.bh),d=B.busy?' disabled':'';
+var h='<div class="bw"><div class="bn"><span>'+b.n+'</span><span>'+bh+'/'+B.bmax+'</span></div><div class="hb"><i style="width:'+Math.round(bh/B.bmax*100)+'%;background:#c0392b"></i></div>';
+h+='<div class="arena"><div class="ac '+(B.anim==='pl'?'lr ':'')+(B.hit==='p'?'sk':'')+'">'+hero()+'</div><div class="ac b2 '+(B.anim==='bo'?'ll ':'')+(B.hit==='b'?'sk':'')+'"><svg viewBox="0 0 80 80">'+b.s+'</svg></div>';
+if(B.num)h+='<span class="num '+(B.num.w==='b'?'nb':'np')+'">'+B.num.t+'</span>';
+h+='</div><div class="pn"><span>Ноа</span><span>'+ph+'/'+B.pmax+'</span></div><div class="hb"><i style="width:'+Math.round(ph/B.pmax*100)+'%;background:var(--ok)"></i></div><div class="log" style="margin-top:8px">'+B.log.slice(-4).join('<br>')+'</div>';
+h+=B.over?'<div class="bs"><button data-a="end">Закрыть</button></div>':'<div class="bs"><button data-a="atk"'+d+'>⚔️ Атаковать</button><button data-a="blk"'+d+'>🛡️ Защита</button>'+ABIL.filter(function(x){return S.sk[x.id]>0}).map(function(x){return '<button data-a="sk" data-id="'+x.id+'"'+(B.busy||B.cd[x.id]>0?' disabled':'')+'>'+x.ic+' '+x.n+(B.cd[x.id]>0?' ('+B.cd[x.id]+')':'')+'</button>'}).join('')+'<button class="alt" data-a="run"'+d+'>Отступить</button></div>';
+el.innerHTML=h+'</div>'}
+var A=null,TO=[],IV=null;
+function clr(){TO.forEach(clearTimeout);TO=[];if(IV){clearInterval(IV);IV=null}}
+var WHO={'Ноа':'#2b8fa6','Мира':'#e08a2e','Ферн':'#7b8794','Тень':'#6b4bb0','Бран':'#4f8f5a','Король':'#2f7f8f'};
+function av(n){return '<span class="av" style="background:'+WHO[n]+'">'+n[0]+'</span>'}
+function sh(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function eqn(){var n=0;for(var k in S.eq)if(S.eq[k])n++;return n}
+var TI={
+herb:{w:'Ферн',k:'herb',say:'Для лекарства нужны целебные травы 🌿. Но у ручья растут и ядовитые грибы 🍄. Собери все травы и не трогай грибы.',tip:'Энергия растёт сама, +1 каждые 5 минут. Зелья энергии продаются в лавке.'},
+crate:{w:'Мира',k:'timing',n:4,sp:1.3,say:'Ящик надо пронести по шаткой доске. Жми «Шаг», когда маркер в зелёной зоне. Четыре точных шага, и ты на другой стороне.',tip:'Руда нужна для ковки в кузнице.'},
+lamp:{w:'Ферн',k:'lamp',say:'Фонари на пристани гаснут один за другим. Запомни порядок, в котором они вспыхивают, и зажги их так же.',tip:'Опыт повышает уровень. За каждый уровень даётся очко навыков.'},
+map:{w:'Мира',k:'dots',say:'Соедини ориентиры по порядку от 1 до 6, и тропа к болотам окажется на карте. Не ошибайся и поторопись.',tip:'Кристаллы нужны для закалки предметов в кузнице.'},
+fish:{w:'Бран',k:'timing',n:3,sp:1.8,say:'Клюёт! Подсекай, когда поплавок в зелёной зоне. Три удачных подсечки, и ужин в таверне обеспечен.',tip:'Монеты можно потратить на броню и оружие в лавке.'},
+bridge:{w:'Ферн',k:'pairs',say:'Мост у болот разбит. Найди пары материалов: гвозди, доски и молотки. Больше четырёх ошибок нельзя.',tip:'Руда и кристаллы выпадают и с боссов.'}};
+var STORY=[
+{n:'Берег',obj:'Выполни 2 задания',g:2,v:function(){return S.total},r:{c:30,xp:20},
+intro:[['Ноа','Холодный песок. Над головой погасший маяк. Я не помню, кто я.'],['Мира','Живой? Редкость. Я Мира. В порту нужны руки. Загляни во вкладку «Дела» и займись работой.'],['Мира','Сделай два задания: заодно узнаешь, как тут всё устроено.']],
+out:[['Мира','Неплохо для утопленника. Осколок в твоём кармане светится. Такие когда-то держали Маяк.'],['Ноа','Осколок… Значит, я как-то связан с Маяком.']]},
+{n:'Броня',obj:'Купи экипировку в лавке',g:1,v:eqn,r:{c:30,xp:30},
+intro:[['Ферн','Я Ферн, смотритель. На болота без брони не ходят. Загляни в «Лавку», открой вкладку «Шлемы» или «Доспехи» и купи что-нибудь.'],['Ферн','Вещь наденется сама, если слот пуст. Остальное меняй в «Рюкзаке».']],
+out:[['Ферн','Теперь ты хоть похож на воина.'],['Ноа','Странно, но так привычнее.']]},
+{n:'Болотный слизень',obj:'Победи Болотного слизня (нужен 2 уровень)',g:1,v:function(){return S.kills.slime||0},r:{c:40,xp:40,cr:2},
+intro:[['Мира','На Болотах Шёпота сидит слизень и стережёт осколок. Нужен 2 уровень и 3 энергии.'],['Мира','Мало энергии? В лавке есть зелья. Бои во вкладке «Бои».']],
+out:[['Ноа','Второй осколок. Он шепчет: «Найди остальные».'],['Мира','Значит, они разбросаны по всему архипелагу.']]},
+{n:'Кузница',obj:'Улучши любой предмет в кузнице',g:1,v:mw,r:{c:40,xp:40,ore:2},
+intro:[['Ферн','Сталь без ковки как память без прошлого. Во вкладке «Кузница» тратят руду и монеты, а закалка берёт кристаллы.'],['Ферн','Руду дают боссы, задания и походы, а у каждого оружия она своя. Смотри вкладку «Руда» в рюкзаке.']],
+out:[['Ферн','Чувствуешь разницу в руке? Так и надо.']]},
+{n:'Навыки',obj:'Вложи очко навыков',g:1,v:function(){return S.st.str+S.st.agi+S.st.vit},r:{xp:60,c:20},
+intro:[['Мира','За каждый уровень тебе дают очко навыков. Вкладывай его во вкладке «Навыки»: сила бьёт сильнее, ловкость даёт крит и уклонение, стойкость прибавляет здоровье.']],
+out:[['Мира','Правильно. Сильный путник доживает до старости.']]},
+{n:'Каменный краб',obj:'Победи Каменного краба (нужен 4 уровень)',g:1,v:function(){return S.kills.crab||0},r:{c:80,xp:80,cr:3},
+intro:[['Тень','Осколки не для тебя, Искатель. Они уже выбрали другого.'],['Ноа','Кто ты?'],['Мира','Тень. Он тоже ищет осколки. Краб на берегу стережёт третий, возьми его первым.']],
+out:[['Ноа','Третий осколок. Я вижу башню и огонь. Это воспоминание.']]},
+{n:'Шестерёнчатый страж',obj:'Победи стража (нужен 6 уровень)',g:1,v:function(){return S.kills.guard||0},r:{c:120,xp:120,cr:4},
+intro:[['Ферн','На Острове Шестерён старый механизм принял осколок за ключ. Страж бьёт тяжело и носит броню.'],['Ферн','Без закалённого оружия не лезь.']],
+out:[['Ноа','Четвёртый осколок. Я вспоминаю: я стоял на вершине Маяка.']]},
+{n:'Призрак Маяка',obj:'Победи Призрака Маяка (нужен 8 уровень)',g:1,v:function(){return S.kills.ghost||0},r:{c:300,xp:200,cr:5},
+intro:[['Тень','Призрак ждёт тебя. Он помнит то, что ты забыл.'],['Мира','Не слушай его. Бей и держи щит.']],
+out:[['Ноа','Я вспомнил. Я был Хранителем Маяка. Я сам погасил его, чтобы Призрак не вышел в море.'],['Мира','И что теперь?'],['Ноа','Теперь я зажгу его снова.'],['Ферн','Маяк снова дышит, но море ещё помнит. Впереди Утонувший Город.']]},
+{n:'Штормовой змей',obj:'Победи Штормового змея (нужен 10 уровень)',g:1,v:function(){return S.kills.serpent||0},r:{c:250,xp:250,cr:5},
+intro:[['Мира','С тех пор как Призрак пал, море взбесилось. У входа в Утонувший Город кружит змей, и ни одна лодка не проходит.'],['Ферн','Чешуя у него колючая: чем сильнее бьёшь, тем больнее отдача. Возьми щит и побольше здоровья.'],['Ноа','Мне нужно попасть в город. Там что-то моё.']],
+out:[['Ноа','Из пасти змея выпал пятый осколок. Он тёплый, как будто его только что держали в руке.'],['Мира','Тень уже шла по твоим следам. Не оглядывайся слишком долго.']]},
+{n:'Жнец тумана',obj:'Победи Жнеца тумана (нужен 12 уровень)',g:1,v:function(){return S.kills.reaper||0},r:{c:350,xp:350,cr:7},
+intro:[['Тень','Ты вернулся за тем, что потерял. А я за тем, что ты бросил. Пройти дальше можно только через туман.'],['Мира','В тумане ходит Жнец. Он крадёт силу и лечится ею. Бей быстро и не затягивай бой.']],
+out:[['Ноа','Туман рассеялся. Вдали видны башни, и они под водой.'],['Ферн','Тень говорила о том, что ты бросил. Что она имела в виду?'],['Ноа','Не знаю. Но, кажется, скоро узнаю.']]},
+{n:'Достойная экипировка',obj:'Добудь предмет редкости «Эпический» или выше',g:1,v:function(){var n=0;S.own.forEach(function(id){var i=by(CLO,id);if(i&&(i.r||0)>=3)n++});S.wo.forEach(function(id){var w=by(W,id);if(w&&(w.r||0)>=3)n++});return n},r:{c:300,xp:300,cr:6},
+intro:[['Ферн','Король города был воином, прежде чем утонул. Простая сталь его не возьмёт.'],['Ферн','Эпические вещи продаются в лавке за кристаллы и руду, а уникальные собираются в кузнице из осколков. Добудь хотя бы одну.']],
+out:[['Ферн','Вот теперь ты выглядишь как тот, кому не стыдно открыть ворота Утонувшего Города.']]},
+{n:'Утонувший король',obj:'Победи Утонувшего короля (нужен 14 уровень)',g:1,v:function(){return S.kills.king||0},r:{c:500,xp:500,cr:9},
+intro:[['Мира','Король когда-то хранил ключ от Маяка. Когда море забрало город, он не ушёл. Прилив слушается его до сих пор.'],['Ноа','Я помню эти улицы. Я здесь ходил с факелом.'],['Мира','Тогда он узнает тебя раньше, чем ты его.']],
+out:[['Король','Хранитель… Я держал ключ, пока ты не вернёшься. Забери его. Тень была частью тебя, той, что не смогла простить.'],['Ноа','Простить что?'],['Король','То, что ты сам погасил свет и оставил нас во тьме. Она хочет, чтобы Маяк не загорелся никогда.'],['Ферн','Значит, последний бой будет с самим собой.']]},
+{n:'Тень Хранителя',obj:'Победи Тень Хранителя (нужен 16 уровень)',g:1,v:function(){return S.kills.shadow||0},r:{c:1000,xp:900,cr:16},
+intro:[['Тень','Ты бросил меня в темноте, когда гасил огонь. Я помню каждую ночь.'],['Ноа','Я тоже помню. Я боялся, что Призрак выйдет в море. Но я не должен был оставлять тебя одну.'],['Тень','Слова ничего не стоят. Докажи.'],['Мира','Бей, но не ради победы. Ради того, чтобы ты смог её выслушать.']],
+out:[['Тень','Ты… действительно вернулся.'],['Ноа','Прости. Пойдём со мной. Маяку нужны оба Хранителя: тот, кто гасил свет, и та, кто помнила во тьме.'],['Тень','Хорошо. Зажигай.'],['Ноа','Шесть осколков вспыхнули в ладонях, и над архипелагом поднялся белый луч. Туман отступил, и море впервые за много лет стало спокойным.'],['Мира','Добро пожаловать домой, Хранитель.'],['Ферн','Конец истории. Но маяк светит, а значит, у архипелага впереди новые дороги.']]}];
+function talk(L,after){A={ph:'talk',L:L,i:0,after:after};drawAct()}
+function maybeStory(){var c=STORY[S.ch];if(c&&!A&&!S.seen['i'+S.ch]){S.seen['i'+S.ch]=1;save();talk(c.intro)}}
+function startFlow(){if(dailyReady()){A={ph:'daily'};drawAct()}else maybeStory()}
+setInterval(function(){if(dailyReady()&&!A&&!B){A={ph:'daily'};drawAct()}},3000);
+function openTask(id){A={ph:'intro',t:by(TASKS,id)}}
+function initGame(){var t=A.t,k=TI[t.id].k,g={};A.kind=k;A.keep=false;A.drawn=false;
+function timer(sec){g.left=sec;g.max=sec;IV=setInterval(function(){if(!A||A.ph!=='play')return;g.left-=.25;var e=document.getElementById('tb');if(e)e.style.width=Math.max(0,g.left/g.max*100)+'%';if(g.left<=0)fin(false)},250)}
+if(k==='herb'){g.cells=sh(['h','h','h','h','h','m','m','m','m','','','']);g.tap={};g.got=0;g.err=0;timer(12)}
+if(k==='lamp'){g.seq=[0,1,2,3].map(function(){return Math.floor(Math.random()*4)});g.pos=0;g.lit=-1;g.mode='watch';
+g.seq.forEach(function(v,i){TO.push(setTimeout(function(){g.lit=v;drawAct()},700+i*800));TO.push(setTimeout(function(){g.lit=-1;drawAct()},1100+i*800))});
+TO.push(setTimeout(function(){g.mode='input';drawAct()},700+g.seq.length*800))}
+if(k==='dots'){g.pts=sh([0,1,2,3,4,5,6,7,8,9,10,11]).slice(0,6).map(function(c){return{x:(c%4)*25+12.5,y:Math.floor(c/4)*33+16}});g.next=0;g.err=0;timer(15)}
+if(k==='timing'){g.hit=0;g.miss=0;g.need=TI[t.id].n;g.x=0;g.d=1;g.zw=24;g.zx=15+Math.random()*50;A.keep=true;
+IV=setInterval(function(){if(!A||A.ph!=='play')return;g.x+=g.d*TI[t.id].sp;if(g.x>=100){g.x=100;g.d=-1}if(g.x<=0){g.x=0;g.d=1}var m=document.getElementById('mk');if(m)m.style.left=g.x*.97+'%'},30)}
+if(k==='pairs'){g.cards=sh(['🔩','🔩','🪵','🪵','🔨','🔨']);g.op=[];g.ok=[];g.miss=0}
+A.g=g;A.ph='play'}
+function fin(ok){clr();var t=A.t;A.ph='done';A.ok=ok;A.keep=false;A.drawn=false;
+if(ok){S.done.push(t.id);S.total++;gain(t.xp,t.c,t.cr);S.ore+=t.ore||0}else{S.en=Math.min(MAXEN,S.en+Math.floor(t.e/2))}
+save();render();drawAct()}
+function gclick(id){var g=A.g,k=A.kind,n=+id;
+if(k==='herb'){var c=g.cells[n];if(g.tap[n]||!c)return;g.tap[n]=1;if(c==='h'){g.got++;if(g.got>=5)return fin(true)}else{g.err++;if(g.err>=2)return fin(false)}}
+if(k==='lamp'){if(g.mode!=='input')return;if(n===g.seq[g.pos]){g.pos++;g.lit=n;TO.push(setTimeout(function(){g.lit=-1;drawAct()},250));if(g.pos>=g.seq.length)return fin(true)}else return fin(false)}
+if(k==='dots'){if(n===g.next){g.next++;if(g.next>=6)return fin(true)}else{g.err++;if(g.err>=3)return fin(false)}}
+if(k==='timing'){var m=g.x*.97+1,ok=m>=g.zx&&m<=g.zx+g.zw;if(ok){g.hit++;if(g.hit>=g.need)return fin(true);g.zx=10+Math.random()*60;var z=document.getElementById('zn');if(z)z.style.left=g.zx+'%'}else{g.miss++;if(g.miss>=3)return fin(false)}
+var s2=document.getElementById('gs');if(s2)s2.textContent='Точно: '+g.hit+'/'+g.need+' · промахи '+g.miss+'/3'}
+if(k==='pairs'){if(g.ok.indexOf(n)>-1||g.op.indexOf(n)>-1||g.op.length>=2)return;g.op.push(n);
+if(g.op.length===2){if(g.cards[g.op[0]]===g.cards[g.op[1]]){g.ok.push(g.op[0],g.op[1]);g.op=[];if(g.ok.length>=6)return fin(true)}else{g.miss++;if(g.miss>=4)return fin(false);TO.push(setTimeout(function(){g.op=[];drawAct()},700))}}}}
+function gameHtml(){var g=A.g,k=A.kind,h='';
+if(k==='herb'){h+='<div class="gi">Травы '+g.got+'/5 · ошибки '+g.err+'/2</div><div class="tbar"><i id="tb" style="width:'+g.left/g.max*100+'%"></i></div><div class="gr4">';g.cells.forEach(function(c,i){var d=g.tap[i];h+='<button data-a="g" data-id="'+i+'"'+(d||!c?' disabled':'')+'>'+(d?(c==='h'?'✅':'❌'):c==='h'?'🌿':c==='m'?'🍄':'')+'</button>'});h+='</div>'}
+if(k==='lamp'){var C=['#e0483a','#e9a93b','#3fae6a','#3f7fe0'];h+='<div class="gi">'+(g.mode==='watch'?'Запоминай порядок…':'Повторяй: '+g.pos+'/'+g.seq.length)+'</div><div class="lamps">';C.forEach(function(c,i){h+='<button class="lamp" data-a="g" data-id="'+i+'" style="background:'+c+';opacity:'+(g.lit===i?1:.3)+'"'+(g.mode==='watch'?' disabled':'')+' aria-label="Фонарь '+(i+1)+'"></button>'});h+='</div>'}
+if(k==='dots'){h+='<div class="gi">Следующая точка: '+Math.min(6,g.next+1)+' · ошибки '+g.err+'/3</div><div class="tbar"><i id="tb" style="width:'+g.left/g.max*100+'%"></i></div><div class="field"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><polyline fill="none" stroke="#c98a1f" stroke-width="1.5" points="'+g.pts.slice(0,g.next).map(function(p){return p.x+','+p.y}).join(' ')+'"/></svg>';g.pts.forEach(function(p,i){h+='<button data-a="g" data-id="'+i+'" style="left:'+p.x+'%;top:'+p.y+'%"'+(i<g.next?' disabled':'')+'>'+(i+1)+'</button>'});h+='</div>'}
+if(k==='timing')h+='<div class="gi" id="gs">Точно: 0/'+g.need+' · промахи 0/3</div><div class="tm"><div class="zone" id="zn" style="left:'+g.zx+'%;width:'+g.zw+'%"></div><div class="mk" id="mk" style="left:0"></div></div><button class="buy" data-a="g" data-id="hit">'+(A.t.id==='fish'?'Подсечь!':'Шаг')+'</button>';
+if(k==='pairs'){h+='<div class="gi">Ошибки '+g.miss+'/4</div><div class="gr4" style="grid-template-columns:repeat(3,1fr)">';g.cards.forEach(function(c,i){var sh2=g.ok.indexOf(i)>-1||g.op.indexOf(i)>-1;h+='<button data-a="g" data-id="'+i+'"'+(g.ok.indexOf(i)>-1?' disabled':'')+'>'+(sh2?c:'❓')+'</button>'});h+='</div>'}
+return h}
+function drawAct(){var el=document.getElementById('act');
+if(!A){clr();el.hidden=true;el.innerHTML='';return}
+if(A.keep&&A.drawn)return;
+el.hidden=false;var h='<div class="bw">',t=A.t,i=t&&TI[t.id];
+if(A.ph==='eyes'){h+='<div class="sp">'+av('Ноа')+'<b>Создание героя</b></div><div style="width:150px;margin:0 auto">'+hero()+'</div><p class="tt" style="text-align:center">Выбери цвет глаз Ноа. Он останется с тобой на всю игру.</p><div class="eyes">'+EYES.map(function(e){return '<button class="'+(S.eye===e.c?'on':'')+'" data-a="eyec" data-id="'+e.c+'" style="background:'+e.c+'" aria-label="'+e.n+'" title="'+e.n+'"></button>'}).join('')+'</div><div class="bs" style="justify-content:center">'+bt('eyeok','x','Начать игру',0,'buy')+'</div>'}
+else if(A.ph==='daily'){h+='<div class="sp">'+av('Ферн')+'<b>Награда за вход</b></div>'+dailyBox()}
+else if(A.ph==='talk'){var L=A.L[A.i];h+='<div class="sp">'+av(L[0])+'<b>'+L[0]+'</b></div><p class="tt">'+L[1]+'</p><div class="bs"><button data-a="next">'+(A.i<A.L.length-1?'Далее':'Понятно')+'</button></div>'}
+else if(A.ph==='intro'){h+='<div class="sp">'+av(i.w)+'<b>'+t.n+'</b></div><p class="tt">'+i.say+'</p><div class="gi">Энергия '+t.e+' · награда: '+t.xp+' опыта, '+t.c+' монет'+(t.cr?', '+t.cr+' крист.':'')+(t.ore?', '+t.ore+' руды':'')+'</div><div class="bs">'+bt('tstart','x','Начать',S.en<t.e,'buy')+bt('aclose','x','Отмена',0,'alt')+'</div>'+(S.en<t.e?'<div class="gi">Не хватает энергии. Подожди или купи зелье в лавке.</div>':'')}
+else if(A.ph==='res'){h+='<div class="sp">'+av('Ноа')+'<b>'+A.title+'</b></div>'+A.L2.map(function(x){return '<p class="tt">'+x+'</p>'}).join('')+'<div class="bs">'+(A.ev?bt('evgo','x','Дальше',0,'buy'):bt('aclose','x','Закрыть',0,'buy'))+'</div>'}
+else if(A.ph==='ev'){h+='<div class="sp">'+av('Ноа')+'<b>'+A.e.n+'</b></div><p class="tt">'+A.e.t+'</p><div class="bs">'+A.e.o.map(function(o,k){return bt('evopt',k,o.t,o.need&&S.c<o.need,k?'alt':'buy')}).join('')+'</div>'}
+else if(A.ph==='play'){h+='<div class="sp">'+av(i.w)+'<b>'+t.n+'</b></div><div id="gm">'+gameHtml()+'</div><div class="bs">'+bt('aclose','x','Выйти',0,'alt')+'</div>'}
+else{h+='<div class="sp">'+av(i.w)+'<b>'+(A.ok?'Задание выполнено':'Не вышло')+'</b></div><p class="tt">'+(A.ok?'Награда: +'+t.xp+' опыта, +'+t.c+' монет'+(t.cr?', +'+t.cr+' крист.':'')+(t.ore?', +'+t.ore+' руды':'')+'.':'Половина энергии вернулась. Попробуй ещё раз.')+'</p>'+(A.ok?'<p class="tt"><i>Совет: '+i.tip+'</i></p>':'')+'<div class="bs">'+(A.ok?'':bt('tretry','x','Ещё раз',S.en<t.e,'buy'))+bt('aclose','x','Закрыть',0,'alt')+'</div>'}
+el.innerHTML=h+'</div>';if(A.keep)A.drawn=true}
+var DAILY=[{c:20},{c:10,p1:1},{ore:2},{c:40,cr:1},{p2:1,copper:2},{ore:3,cr:2},{c:100,cr:3,p3:1,gold:1}];
+function rtxt(r){var o=[];if(r.c)o.push('🪙'+r.c);if(r.cr)o.push('💎'+r.cr);if(r.ore)o.push('🔩'+r.ore);ORES.forEach(function(x){if(x.id!=='iron'&&r[x.id])o.push(x.ic+r[x.id])});if(r.p1)o.push('🧪 малое зелье');if(r.p2)o.push('🧪 зелье энергии');if(r.p3)o.push('🧪 эликсир');return o.join(' ')}
+function dailyReady(){return S.lg.d!==today()}
+function dailyIdx(){return S.lg.d===today()?(S.lg.n-1)%7:S.lg.d===yday()?S.lg.n%7:0}
+function dailyBox(){var cur=dailyIdx(),rd=dailyReady(),h='<p class="tt">'+(rd?'Заходи каждый день: награды растут, а на седьмой день тебя ждёт самый большой приз. Пропустишь день, и цикл начнётся заново.':'Сегодняшняя награда получена. Возвращайся завтра.')+'</p><div class="dg">';
+DAILY.forEach(function(r,i){var got=rd?i<cur:i<=cur;h+='<div class="'+(i===cur?'cur ':'')+(got&&i!==cur?'got':'')+'"><b>День '+(i+1)+'</b>'+rtxt(r)+(got&&!rd?'<br>✅':got&&i<cur?'<br>✅':'')+'</div>'});
+return h+'</div><div class="bs" style="justify-content:center">'+bt('dclaim','x',rd?'Забрать награду':'Получено',!rd,'buy')+'</div>'}
+var stab='potions',STABS=[['potions','Зелья','🧪'],['mats','Материалы','🔩'],['weapons','Оружие','⚔️'],['helm','Шлемы','⛑️'],['armor','Доспехи','🛡️'],['hands','Перчатки','🧤'],['boots','Сапоги','👢'],['cape','Плащи','🧣'],['shield','Щиты','🔰'],['pets','Питомцы','🐾']];
+function shopBar(){return '<div class="chips">'+STABS.map(function(t){return '<button class="'+(stab===t[0]?'on':'')+'" data-a="stab" data-id="'+t[0]+'">'+t[2]+' '+t[1]+'</button>'}).join('')+'</div>'}
+var fsub='weapons',FTABS=[['weapons','Оружие','⚔️'],['helm','Шлемы','⛑️'],['armor','Доспехи','🛡️'],['hands','Перчатки','🧤'],['boots','Сапоги','👢'],['cape','Плащи','🧣'],['shield','Щиты','🔰'],['uniq','Уникальные','✨']];
+function forgeBar(){return '<div class="chips">'+FTABS.map(function(t){return '<button class="'+(fsub===t[0]?'on':'')+'" data-a="ftab" data-id="'+t[0]+'">'+t[2]+' '+t[1]+'</button>'}).join('')+'</div>'}
+var btab='potions',BTABS=[['potions','Зелья','🧪'],['weapons','Оружие','⚔️'],['helm','Шлемы','⛑️'],['armor','Доспехи','🛡️'],['hands','Перчатки','🧤'],['boots','Сапоги','👢'],['cape','Плащи','🧣'],['shield','Щиты','🔰'],['ore','Руда','⛏️'],['pets','Питомцы','🐾']];
+function bagBar(){return '<div class="chips">'+BTABS.map(function(t){return '<button class="'+(btab===t[0]?'on':'')+'" data-a="btab" data-id="'+t[0]+'">'+t[2]+' '+t[1]+'</button>'}).join('')+'</div>'}
+var SL=[['helm','Шлем','Шлемы'],['armor','Доспех','Доспехи'],['hands','Перчатки','Перчатки'],['boots','Сапоги','Сапоги'],['cape','Плащ','Плащи'],['shield','Щит','Щиты']],CH=[100,85,70,55,40];
+var POTS=[{id:'p1',n:'Малое зелье энергии',e:4,p:16,col:'#4aa3e0'},{id:'p2',n:'Зелье энергии',e:8,p:30,col:'#8a5cd6'},{id:'p3',n:'Большой эликсир',e:15,full:1,p:55,col:'#e8a62e'}];
+function nm(i){var l=S.wl[i.id]||0;return i.n+(l?' +'+l:'')}
+function stext(i,l){var o=[],hp=ist(i,'hp',l),at=ist(i,'atk',l);if(hp)o.push('+'+hp+' здоровья');if(at)o.push('+'+at+' атаки');return o.join(', ')}
+var UNIQ=W.filter(function(x){return x.u}).concat(CLO.filter(function(x){return x.u}));
+var EXP=[
+{id:'x1',n:'Лесная тропа',dur:120,e:2,ul:1,xp:25,c:15,ore:1,ox:{copper:1},cr:0,dr:[['moon',.35],['fog',.25]],txt:'Ноа прошёл лесной тропой вдоль берега и вернулся с добычей.'},
+{id:'x2',n:'Пещеры Эха',dur:300,e:3,ul:3,xp:60,c:35,ore:2,ox:{copper:2,silver:1},cr:0,dr:[['moon',.4],['dawn',.3],['fog',.3]],txt:'В Пещерах Эха Ноа слышал собственные шаги и чужое дыхание.'},
+{id:'x3',n:'Руины Шестерён',dur:600,e:4,ul:5,xp:120,c:70,ore:3,ox:{silver:2,mithril:1},cr:1,dr:[['dawn',.35],['keeper',.3],['moon',.3]],txt:'Среди ржавых механизмов Ноа искал то, что осталось от стражи Маяка.'},
+{id:'x4',n:'Утонувший Город',dur:1200,e:5,ul:8,xp:220,c:140,ore:5,ox:{mithril:2,gold:1},cr:2,dr:[['keeper',.4],['light',.35],['dawn',.3]],txt:'Под водой Ноа нашёл улицы, где он когда-то ходил. Он не всё помнит, но шёл уверенно.'},
+{id:'m1',mine:1,main:'iron',n:'Железные копи',dur:180,e:2,ul:1,xp:15,c:10,ore:4,cr:0,dr:[],txt:'Ноа долго махал киркой в старых копях и вынес железную руду.'},
+{id:'m2',mine:1,main:'copper',n:'Медная жила',dur:300,e:2,ul:2,xp:25,c:15,ore:0,ox:{copper:4},cr:0,dr:[],txt:'В сырой жиле у реки нашлась медная руда.'},
+{id:'m3',mine:1,main:'silver',n:'Серебряные штольни',dur:480,e:3,ul:4,xp:45,c:25,ore:1,ox:{silver:4},cr:0,dr:[],txt:'В глубоких штольнях блестели серебряные прожилки.'},
+{id:'m4',mine:1,main:'mithril',n:'Мифриловые пещеры',dur:720,e:4,ul:6,xp:80,c:40,ore:0,ox:{mithril:4},cr:1,dr:[],txt:'Голубой мифрил светился в темноте, как осколок маяка.'},
+{id:'m5',mine:1,main:'gold',n:'Золотая шахта',dur:1080,e:5,ul:8,xp:130,c:70,ore:0,ox:{gold:4},cr:2,dr:[],txt:'В золотой шахте Ноа едва не завалило, но добыча того стоила.'}];
+var TT={daily:'Награды за вход',tasks:'Дела и походы',quests:'Сюжет',boss:'Бои',skills:'Навыки',forge:'Кузница',shop:'Лавка',bag:'Рюкзак',stats:'Характеристики',ach:'Титулы'};
+function fmt(s){return Math.floor(s/60)+':'+('0'+s%60).slice(-2)}
+function kv(a,b){return '<div class="kv"><span>'+a+'</span><b>'+b+'</b></div>'}
+function card(t,l){return '<div class="row"><div class="tx"><b>'+t+'</b>'+l+'</div></div>'}
+function room(){return ['<svg class="bgi" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="wl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#46525d"/><stop offset="1" stop-color="#29313a"/></linearGradient><linearGradient id="fl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d5736"/><stop offset="1" stop-color="#3f2916"/></linearGradient><radialGradient id="gl"><stop offset="0" stop-color="#ffb347" stop-opacity=".6"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/></radialGradient><pattern id="br" width="48" height="32" patternUnits="userSpaceOnUse"><path d="M0 0H48M0 16H48M24 0V16M0 16V32M48 16V32" stroke="#1b2229" stroke-width="1.2" fill="none" opacity=".6"/></pattern></defs>',
+'<rect width="400" height="560" fill="url(#wl)"/><rect width="400" height="560" fill="url(#br)"/>',
+'<path d="M40 340V236Q40 154 96 154Q152 154 152 236V340Z" fill="#0e1a2b" stroke="#7d5736" stroke-width="7"/><path d="M96 154V340M40 246H152" stroke="#7d5736" stroke-width="3"/><circle cx="62" cy="190" r="1.6" fill="#fff"/><circle cx="130" cy="184" r="1.3" fill="#fff"/><circle cx="64" cy="290" r="1.3" fill="#fff"/><circle cx="128" cy="214" r="10" fill="#e8eef5"/><path d="M84 340V300L90 288L96 300V340Z" fill="#06101c"/><rect x="86" y="284" width="8" height="5" fill="#06101c"/><rect x="30" y="340" width="132" height="9" fill="#5e4129"/>',
+'<path d="M214 120H294V300L254 280L214 300Z" fill="#8e2a35" stroke="#4a1218" stroke-width="2"/><path d="M214 130H294" stroke="#c9a24a" stroke-width="3"/><circle cx="254" cy="164" r="7" fill="#e8c15a"/><path d="M254 172V214M242 190H266" stroke="#e8c15a" stroke-width="3"/>',
+'<circle cx="352" cy="262" r="110" fill="url(#gl)"/><rect x="348" y="268" width="8" height="34" fill="#4a301c"/><path d="M342 268H362L358 258H346Z" fill="#3a3f46"/><path d="M352 224Q342 244 347 256Q352 261 357 256Q364 244 352 224Z" fill="#ffb347"/><path d="M352 238Q348 247 351 254Q354 254 355 250Q356 244 352 238Z" fill="#fff0a8"/>',
+'<rect x="10" y="372" width="100" height="150" fill="#4a301c" stroke="#2f1f12" stroke-width="2"/><path d="M10 422H110M10 472H110" stroke="#2f1f12" stroke-width="3"/><rect x="16" y="380" width="9" height="38" fill="#8e2a35"/><rect x="27" y="384" width="8" height="34" fill="#2f6f8c"/><rect x="37" y="378" width="10" height="40" fill="#c9a24a"/><rect x="49" y="382" width="9" height="36" fill="#4f8f5a"/><rect x="60" y="380" width="10" height="38" fill="#6b4bb0"/><rect x="16" y="430" width="10" height="38" fill="#4f8f5a"/><rect x="28" y="426" width="9" height="42" fill="#8e2a35"/><rect x="40" y="432" width="11" height="36" fill="#2f6f8c"/><rect x="72" y="428" width="14" height="40" fill="#c9a24a"/><rect x="18" y="482" width="18" height="34" fill="#7a5434"/><circle cx="70" cy="502" r="13" fill="#d9d2c0"/>',
+'<rect y="560" width="400" height="240" fill="url(#fl)"/><path d="M0 600H400M0 650H400M0 710H400M0 770H400M60 560V600M190 560V600M320 560V600M120 600V650M260 600V650M20 650V710M170 650V710M310 650V710M90 710V770M230 710V770M370 710V770" stroke="#2f1f12" stroke-width="1.5" opacity=".55" fill="none"/><rect y="554" width="400" height="8" fill="#3a2616"/>',
+'<ellipse cx="200" cy="700" rx="175" ry="46" fill="#7a2a2f"/><ellipse cx="200" cy="700" rx="156" ry="38" fill="none" stroke="#c9a24a" stroke-width="2.5"/>',
+'<rect x="298" y="620" width="84" height="48" rx="4" fill="#6b4425" stroke="#2f1f12" stroke-width="2"/><path d="M298 636H382" stroke="#c9a24a" stroke-width="3"/><rect x="332" y="632" width="12" height="12" fill="#c9a24a"/>',
+'<ellipse cx="58" cy="640" rx="34" ry="10" fill="#8a5a2c"/><path d="M24 640V690Q58 704 92 690V640Z" fill="#6b4425"/><path d="M24 656Q58 668 92 656M24 674Q58 686 92 674" stroke="#3a3f46" stroke-width="2.5" fill="none"/></svg>'].join('')}
+function row(ico,t,sm,btn,dn){return '<div class="row'+(dn?' dn':'')+'">'+(ico||'')+'<div class="tx">'+t+(sm?'<small>'+sm+'</small>':'')+'</div>'+(btn||'')+'</div>'}
+function bt(a,id,txt,dis,cls){return '<button'+(cls?' class="'+cls+'"':'')+' data-a="'+a+'" data-id="'+id+'"'+(dis?' disabled':'')+'>'+txt+'</button>'}
+function sw(c){return '<span class="sw" style="background:'+c+'"></span>'}
+function flask(c){return '<svg class="ico" viewBox="0 0 24 24"><path d="M9 3h6v5l4 9a3 3 0 0 1-3 4H8a3 3 0 0 1-3-4l4-9z" fill="#dfe9ee" stroke="#5a6e75"/><path d="M7 15h10l2 2a3 3 0 0 1-3 4H8a3 3 0 0 1-3-4z" fill="'+c+'"/></svg>'}
+function frow(ico,t,sm,id,l){var c=20*(l+1),o=l+1,m=10*(l+1),od=by(ORES,oid(id));
+return row(ico,t+' (ур. '+l+'/5)',sm+(l<5?'<br>Ковка: '+c+' монет и '+o+' × '+od.n.toLowerCase()+' (у вас '+oget(od.id)+'), шанс '+CH[l]+'%<br>Закалка: '+m+' монет и '+o+' крист., шанс 100%':'<br>Максимальный уровень'),l<5?'<div class="bc">'+bt('smith',id,'Ковка',S.c<c||oget(od.id)<o)+bt('temper',id,'Закалка',S.c<m||S.cr<o)+'</div>':'')}
+function render(){
+newDay();regen();var appEl=document.getElementById('app');if(appEl)appEl.className=tab==='hero'?'hero':'';
+var tt=curTitle(),h='',rdy=S.ch<STORY.length&&STORY[S.ch].v()>=STORY[S.ch].g;
+var hud='<div class="top"><span class="lv">Ур. '+S.lvl+'</span><div class="xp"><i style="width:'+Math.round(S.xp/need(S.lvl)*100)+'%"></i><span>'+S.xp+' / '+need(S.lvl)+'</span></div>'+bt('tab','shop','🪙 '+S.c,0,'coin')+bt('tab','forge','💎 '+S.cr,0,'coin')+bt('toore','x','⛏️ '+totalOre(),0,'coin')+'</div><div class="en"><span>⚡</span><div class="eb"><i style="width:'+Math.round(Math.min(1,S.en/MAXEN)*100)+'%"></i></div><span class="ev">'+S.en+'/'+MAXEN+'</span>'+bt('topot','x','🧪',0,'coin')+bt('snd','x',sndIcon(),0,'coin')+'</div>';
+if(tab!=='hero')h+='<div class="hd"'+((tab==='shop'||tab==='bag'||tab==='forge')?' style="flex-wrap:wrap"':'')+'>'+bt('tab','hero','← Назад',0,'alt')+'<b>'+TT[tab]+'</b>'+(tab==='shop'?shopBar():tab==='bag'?bagBar():tab==='forge'?forgeBar():'')+'</div>';
+if(tab==='hero'){
+var say=S.en<4?'Устал. Нужен отдых или зелье.':S.done.length>=TASKS.length?'Все дела сделаны.':'Готов к делам.',xr=S.exp&&Date.now()>=S.exp.end;
+h+='<div class="stage big">'+room()+hero()+'<div class="plate">'+curTitle()+'</div>'+(S.pa&&S.pets[S.pa]!==undefined?'<div class="pet'+(psat(S.pa)<25?' hg':'')+'">'+petSvg(S.pa)+(psat(S.pa)<25?'<span>🍖</span>':'')+'</div>':'')+'<span class="say">'+say+'</span></div>';
+h+='<div class="menu">';
+[['tasks','Дела','📋',xr?' ✅':S.exp?' ⏳':''],['quests','Сюжет','📖',rdy?' ❗':''],['boss','Бои','⚔️',''],['skills','Навыки','✨',S.pts?' ●':''],['forge','Кузница','🔨',''],['shop','Лавка','🛒',''],['bag','Рюкзак','🎒',''],['stats','Герой','📊',''],['ach','Титулы','🏅',achNew()?' ❗':'']].forEach(function(m){h+='<button data-a="tab" data-id="'+m[0]+'" aria-label="'+m[1]+'"><span class="ic">'+m[2]+'</span><span>'+m[1]+m[3]+'</span></button>'});h+='</div>'}
+if(tab==='tasks'){
+h+='<h2>Походы</h2>';
+if(S.exp){var ex=by(EXP,S.exp.id),left=Math.max(0,Math.ceil((S.exp.end-Date.now())/1000)),pc=Math.min(100,(1-left/(S.exp.dur||1))*100);
+h+='<div class="row"><div class="tx"><b>'+ex.n+'</b><small id="et">'+(left?'Идёт поход. Осталось '+fmt(left):'Ноа вернулся. Забери добычу.')+'</small><div class="tbar"><i id="eb" style="width:'+pc+'%"></i></div></div>'+(left?'':bt('xclaim','x','Забрать',0,'buy'))+'</div>'}
+else{var xr=function(x){var lock=S.lvl<x.ul;h+=row(x.mine?sw(by(ORES,x.main).col):'',x.n+' ('+x.dur/60+' мин)','Энергия '+x.e+' · +'+x.xp+' опыта, +'+x.c+' монет'+(x.ore?', +'+x.ore+' руды':'')+otext(x.ox)+(x.cr?', +'+x.cr+' крист.':'')+(x.dr.length?'<br>Осколки: '+x.dr.map(function(d){return by(UNIQ,d[0]).n+' '+Math.round(d[1]*100)+'%'}).join(', '):'')+(lock?'<br>🔒 Нужен '+x.ul+' уровень (у вас '+S.lvl+')':''),bt('xgo',x.id,lock?'Закрыто':'В поход',lock||S.en<x.e,'buy'),lock)};
+EXP.filter(function(x){return !x.mine}).forEach(xr);h+='<h2>Добыча руды</h2>';EXP.filter(function(x){return x.mine}).forEach(xr)}
+h+=row('','Уникальные предметы','Осколки из походов собираются в кузнице, во вкладке «Уникальные».',bt('tofu','x','В кузницу',0,'alt'));
+h+='<h2>Задания на сегодня ('+S.done.length+'/'+TASKS.length+')</h2>';
+TASKS.forEach(function(t){var d=S.done.indexOf(t.id)>-1;h+=row('',t.n,'Энергия '+t.e+' · +'+t.xp+' опыта · +'+t.c+' монет'+(t.cr?' · +'+t.cr+' кристалл':'')+(t.ore?' · +'+t.ore+' руды':''),bt('task',t.id,d?'Готово':'Начать',d||S.en<t.e),d)});
+var all=S.done.length>=TASKS.length;
+h+=row('','Сундук дня','За все задания: +25 монет, +30 опыта, +2 кристалла',bt('chest','x',S.chest?'Открыт':'Открыть',!all||S.chest),S.chest);
+h+=row('','Серия: '+S.streak+' дн.','Энергия +1 каждые 5 минут. Зелья есть в лавке.',bt('reset','x','Заново',0,'alt'))}
+if(tab==='daily')h+=dailyBox();
+if(tab==='ach'){h+='<h2>Титулы и достижения</h2>'+row('','Твой титул: '+curTitle(),'Выполняй достижения, получай награды и новые титулы. Выбранный титул показывается под именем Ноа.');ACH.forEach(function(a){var v=Math.min(a.v(),a.g),done=v>=a.g,cl=S.ac.indexOf(a.id)>-1;h+='<div class="row'+(done?'':' dn')+'"><div class="tx">'+a.n+'<small>'+a.d+' ('+v+'/'+a.g+')<br>Награда: '+rtxt(a.r)+' · титул «'+a.t+'»</small><div class="bar"><i style="width:'+Math.round(v/a.g*100)+'%"></i></div></div><div class="bc">'+(done&&!cl?bt('acl',a.id,'Забрать',0,'buy'):'')+(cl?bt('ati',a.id,S.ti===a.id?'Выбран':'Титул',S.ti===a.id,S.ti===a.id?'alt':''):'')+'</div></div>'})}
+if(tab==='stats'){var wp2=by(W,S.we),wl2=S.wl[wp2.id]||0,eqr='';
+h+=card('Ноа, '+tt.toLowerCase(),kv('Уровень',S.lvl)+kv('Опыт',S.xp+' / '+need(S.lvl))+kv('Заданий выполнено',S.total)+kv('Побед над боссами',tk())+kv('Серия дней',S.streak));
+h+=card('Здоровье: '+php(),kv('Базовое',40)+kv('За уровень',S.lvl*7)+kv('Стойкость ('+S.st.vit+')','+'+S.st.vit*10)+kv('Экипировка','+'+eqs('hp'))+kv('Комплекты и питомец','+'+Math.round((setB().hp+petB().hp)*100)+'%'));
+h+=card('Атака: '+patk(),kv('Базовая',4)+kv('За уровень',S.lvl*2)+kv('Сила ('+S.st.str+')','+'+S.st.str*2)+kv('Оружие',wdmg().toFixed(1))+kv('Экипировка','+'+eqs('atk'))+kv('Комплекты и питомец','+'+Math.round((setB().atk+petB().atk)*100)+'%'));
+h+=card('Оружие: '+nm(wp2),kv('Базовый урон',wp2.d)+kv('Прокачка (ур. '+wl2+')','+'+wl2*25+'%')+kv('Итоговый урон',wdmg().toFixed(1)));
+h+=card('Бой',kv('Шанс крита',(10+S.st.agi*4)+'%')+kv('Сила крита','×1.8')+kv('Уклонение',(S.st.agi*3)+'%')+kv('Защита (кнопка)','−50% урона')+kv('Максимум энергии',MAXEN+' (+1 за уровень)'));
+SL.forEach(function(g){var id=S.eq[g[0]],i=id&&by(CLO,id);eqr+=kv(g[1],i?nm(i)+': '+(stext(i,S.wl[i.id]||0)||'без бонуса'):'пусто')});
+h+=card('Бонусы экипировки',eqr+kv('Итого','+'+eqs('hp')+' здоровья, +'+eqs('atk')+' атаки'));
+var sn=setN();h+=card('Комплекты брони',Object.keys(SETS).map(function(k){var st=SETS[k],tot=CLO.filter(function(i){return i.set===k}).length;return kv(st.full,(sn[k]||0)+' / '+tot)+st.b.map(function(b){return '<div class="gi" style="margin:0 0 3px'+((sn[k]||0)>=b[0]?';color:var(--ok);font-weight:700':'')+'">'+b[0]+' предм.: '+btxt(b[1])+'</div>'}).join('')}).join(''));
+var pq2=S.pa&&by(PETS,S.pa);h+=card('Питомец',pq2?kv(pq2.n,pq2.bt)+kv('Сытость',psat(S.pa)+'%'+(psat(S.pa)<25?' (бонус не работает)':'')):kv('Питомца нет','купи в лавке'))}
+if(tab==='quests'){var ch=STORY[S.ch];h+='<h2>Сюжет</h2>';
+if(ch){var cv=Math.min(ch.v(),ch.g),cok=cv>=ch.g;h+='<div class="row"><div class="tx"><b>Глава '+(S.ch+1)+'. '+ch.n+'</b><small>Цель: '+ch.obj+' ('+cv+'/'+ch.g+')</small><div class="bar"><i style="width:'+Math.round(cv/ch.g*100)+'%"></i></div></div><div class="bc">'+bt('sdone','x','Завершить',!cok,cok?'buy':'')+bt('sread','x','Читать',0,'alt')+'</div></div>'}
+else h+=row('','История завершена','Маяк зажжён, Ноа и Тень вместе. Боссов и снаряжение можно улучшать дальше.');
+h+='<h2>Побочные квесты</h2>';QUESTS.forEach(function(q){var v=Math.min(q.v(),q.g),done=S.qc.indexOf(q.id)>-1,ok=v>=q.g;
+h+='<div class="row'+(done?' dn':'')+'"><div class="tx">'+q.n+'<small>'+q.d+' ('+v+'/'+q.g+')<br>Награда: '+q.c+' монет'+(q.xp?', '+q.xp+' опыта':'')+(q.cr?', '+q.cr+' крист.':'')+'</small><div class="bar"><i style="width:'+Math.round(v/q.g*100)+'%"></i></div></div>'+bt('claim',q.id,done?'Получено':'Забрать',done||!ok)+'</div>'})}
+if(tab==='boss'){h+='<h2>Боссы</h2>'+row('','Атака '+patk()+' · здоровье '+php(),'Бой стоит 3 энергии. Первая победа даёт полную награду, повторная половину.');
+BOSS.forEach(function(b){var lock=S.lvl<b.ul,k=S.kills[b.id]||0;
+h+='<div class="row'+(lock?' dn':'')+'"><svg viewBox="0 0 80 80">'+b.s+'</svg><div class="tx">'+b.n+'<small>'+(lock?'Откроется на уровне '+b.ul:'Здоровье '+b.hp+' · урон '+b.atk+' · побед: '+k+'<br>'+b.spt+'<br>Награда: '+b.c+' монет, '+b.xp+' опыта, '+b.cr+' крист., '+b.ore+' руды'+otext(b.ox))+'</small></div>'+bt('fight',b.id,lock?'Закрыт':'В бой',lock||S.en<3)+'</div>'})}
+if(tab==='skills'){h+='<h2>Навыки</h2>'+row('','Очков навыков: '+S.pts,'Одно очко даётся за каждый уровень. Атака '+patk()+', здоровье '+php()+'.');
+[['str','Сила','+2 к атаке'],['agi','Ловкость','шанс крита и уклонения'],['vit','Стойкость','+10 здоровья']].forEach(function(t){h+=row('',t[1]+': '+S.st[t[0]],t[2],bt('st',t[0],'+1',!S.pts))});
+h+='<h2>Боевые умения</h2>'+row('','Умения для боя с боссами','Изучение стоит 2 очка, каждое улучшение 1 очко, максимум 3 ранга.');ABIL.forEach(function(x){var r=S.sk[x.id]||0,cost=r===0?2:1;h+=row('<span class="ic2" style="font-size:1.6rem;border-color:var(--acc)">'+x.ic+'</span>',x.n+(r?' (ранг '+r+')':''),x.d(Math.max(1,r))+(r&&r<3?'<br>Следующий ранг: '+x.d(r+1):''),r>=3?bt('x','x','Макс',1):bt('skup',x.id,r?'Улучшить ('+cost+')':'Изучить ('+cost+')',S.pts<cost,S.pts>=cost?'buy':''))})}
+if(tab==='forge'){
+var fres=row('','В наличии','🪙 '+S.c+' · 💎 '+S.cr+'<br>'+ORES.map(function(o){return o.ic+' '+oget(o.id)}).join(' · ')+'<br>Руду дают боссы, задания и походы, её можно купить в лавке.');
+if(fsub==='weapons'){h+=row('','Как прокачать','Ковка тратит монеты и руду: у каждого оружия своя, для экипировки железная. Шанс падает с уровнем. При неудаче руда остаётся. Закалка тратит кристаллы и работает всегда. Максимум уровень 5.')+fres+'<h2>Оружие</h2>';S.wo.forEach(function(id){var w=by(W,id),l=S.wl[id]||0;h+=frow(swr(w),w.n,rb(w)+' · Урон '+(w.d*(1+.25*l)).toFixed(1)+(l<5?' → '+(w.d*(1+.25*(l+1))).toFixed(1):''),id,l)})}
+else if(fsub==='uniq'){h+=row('','Как собрать уникальный предмет','Осколки выпадают в походах. Для сборки нужны ещё определённая руда и монеты. Собранный предмет можно улучшать в кузнице как обычный.')+fres+'<h2>Уникальные предметы</h2>';UNIQ.forEach(function(u){var have=S.sh[u.id]||0,uc=UC[u.id],orr=by(ORES,uc.o),ho=oget(uc.o),own=u.slot?S.own.indexOf(u.id)>-1:S.wo.indexOf(u.id)>-1,ok=have>=u.need&&ho>=uc.n&&S.c>=uc.c;
+h+='<div class="row'+(own?' dn':'')+'">'+swr(u)+'<div class="tx">'+u.n+' '+rb(u)+'<small>'+(u.slot?stext(u,0):'Урон '+u.d)+'<br>Осколки: '+Math.min(have,u.need)+'/'+u.need+'<br>Руда: '+orr.ic+' '+orr.n+' '+Math.min(ho,uc.n)+'/'+uc.n+'<br>Монеты: '+uc.c+'</small><div class="bar"><i style="width:'+Math.min(100,have/u.need*100)+'%"></i></div></div>'+bt('craft',u.id,own?'Собрано':'Собрать',own||!ok,ok&&!own?'buy':'')+'</div>'});}
+else{h+=fres;SL.forEach(function(g){if(fsub!==g[0])return;h+='<h2>'+g[2]+'</h2>';var any=0;S.own.forEach(function(id){var i=by(CLO,id);if(i.slot!==g[0])return;any=1;var l=S.wl[id]||0;h+=frow(swr(i),i.n,rb(i)+' · '+stext(i,l)+(l<5?' → '+stext(i,l+1):''),id,l)});if(!any)h+=row('','Здесь пока пусто','Купи в лавке или собери уникальный предмет')})}
+}
+if(tab==='shop'){if(stab==='potions'){h+='<h2>Зелья энергии</h2>';POTS.forEach(function(p){h+=row(flask(p.col),p.n+' (в рюкзаке: '+S.pot[p.id]+')',(p.full?'Вся энергия':'+'+p.e+' энергии')+' · '+p.p+' монет',bt('pbuy',p.id,'Купить',S.c<p.p,'buy'))})}
+if(stab==='pets'){h+='<h2>Питомцы</h2>'+row('','Питомец идёт рядом с Ноа и даёт бонус, пока сыт','Кормить можно в рюкзаке за 15 монет. Сытость падает на 10% в час, ниже 25% бонус не работает.');PETS.forEach(function(p){var own=S.pets[p.id]!==undefined,lock=S.lvl<p.ul;h+=row(petIco(p),p.n+' '+rb(p),p.bt+' · '+(own?'у тебя':(lock?'откроется на уровне '+p.ul+' · ':'')+ptxt(p)),own?bt('x','x','Куплен',1):bt('petbuy',p.id,'Купить',lock||!cb(p),'buy'),lock&&!own)})}
+if(stab==='mats'){h+='<h2>Руда</h2>';ORES.forEach(function(o){var lk=S.lvl<o.ul;h+=row(sw(o.col),o.ic+' '+o.n+' (у вас: '+oget(o.id)+')',o.p+' монет за штуку · нужна: '+oused(o.id)+(lk?' · откроется на уровне '+o.ul:''),bt('obuy',o.id,'Купить',lk||S.c<o.p,'buy'),lk)})}
+if(stab==='weapons'){h+=rleg()+'<h2>Оружие</h2>';W.forEach(function(w){if(w.u)return;var own=S.wo.indexOf(w.id)>-1,lock=S.lvl<w.ul;h+=row(swr(w),w.n+' '+rb(w),'Урон '+w.d+' · '+(own?'в рюкзаке':(lock?'откроется на уровне '+w.ul+' · ':'')+ptxt(w)),own?bt('x','x','Куплено',1):bt('wbuy',w.id,'Купить',lock||!cb(w),'buy'),lock&&!own)});
+}
+SL.forEach(function(g){if(stab!==g[0])return;h+=rleg()+'<h2>'+g[2]+'</h2>';CLO.filter(function(i){return i.slot===g[0]&&!i.u}).forEach(function(i){var own=S.own.indexOf(i.id)>-1,lock=S.lvl<i.ul;h+=row(swr(i),i.n+' '+rb(i),stext(i,0)+' · '+(own?'в рюкзаке':(lock?'откроется на уровне '+i.ul+' · ':'')+ptxt(i)),own?bt('x','x','Куплено',1):bt('buy',i.id,'Купить',lock||!cb(i),'buy'),lock&&!own)})})}
+if(tab==='bag'){
+if(btab==='potions'){h+='<h2>Зелья</h2>';POTS.forEach(function(p){h+=row(flask(p.col),p.n+': '+S.pot[p.id],p.full?'Вся энергия':'+'+p.e+' энергии',bt('drink',p.id,'Выпить',!S.pot[p.id]||S.en>=MAXEN),!S.pot[p.id])})}
+if(btab==='weapons'){h+='<h2>Оружие</h2>';S.wo.forEach(function(id){var w=by(W,id),on=S.we===id;h+=row(swr(w),nm(w)+' '+rb(w),'Урон '+(w.d*(1+.25*(S.wl[id]||0))).toFixed(1)+' · руда: '+by(ORES,oid(id)).n.toLowerCase(),bt('weq',id,on?'В руках':'Взять',on,on?'alt':''))})}
+SL.forEach(function(g){if(btab!==g[0])return;h+='<h2>'+g[2]+'</h2>';var any=0;S.own.forEach(function(id){var i=by(CLO,id);if(i.slot!==g[0])return;any=1;var on=S.eq[i.slot]===id;h+=row(swr(i),nm(i)+' '+rb(i),stext(i,S.wl[id]||0),bt('eq',id,on?'Снять':'Надеть',0,on?'alt':''))});if(!any)h+=row('','Здесь пока пусто','Купи в лавке или найди в походах')});
+if(btab==='pets'){h+='<h2>Питомцы</h2>';var any2=0;PETS.forEach(function(p){if(S.pets[p.id]===undefined)return;any2=1;var sa=psat(p.id),on=S.pa===p.id;h+=row(petIco(p),p.n+' '+rb(p),p.bt+'<br>Сытость: '+sa+'%'+(sa<25?' (голоден, бонус не работает)':'')+'<div class="bar"><i style="width:'+sa+'%"></i></div>','<div class="bc">'+bt('petsel',p.id,on?'С тобой':'Взять',on,on?'alt':'')+bt('petfeed',p.id,'Покормить (15)',S.c<15||sa>=100)+'</div>')});if(!any2)h+=row('','Питомцев пока нет','Купи в лавке, вкладка «Питомцы»')}
+if(btab==='ore'){h+='<h2>Руда</h2>';ORES.forEach(function(o){var n=oget(o.id);h+=row(sw(o.col),o.ic+' '+o.n+': '+n,'Нужна для: '+oused(o.id),'',!n)});h+='<h2>Деньги</h2>'+row('','🪙 Монеты: '+S.c,'')+row('','💎 Кристаллы: '+S.cr,'Для закалки')}}
+document.getElementById('hud').innerHTML=hud;
+var pn=document.getElementById('panel'),sub=tab==='bag'?btab:tab==='forge'?fsub:stab,keep=(pn.dataset.t===tab&&pn.dataset.s===sub)?pn.scrollTop:0;
+pn.innerHTML=h;pn.dataset.t=tab;pn.dataset.s=sub;pn.scrollTop=keep;
+if(pn.querySelector){var chn=pn.querySelector('.chips button.on');if(chn&&chn.scrollIntoView)chn.scrollIntoView({block:'nearest',inline:'center'})}
+if(TG&&TG.BackButton){if(tab!=='hero')TG.BackButton.show();else TG.BackButton.hide()}
+}
+document.addEventListener('click',function(e){var b=e.target.closest('button[data-a]');if(!b||b.disabled)return;var a=b.dataset.a,id=b.dataset.id;ac();sfx('tap');if(S.snd&&S.snd.mus)musStart();
+if(a==='tab')tab=id;
+if(a==='stab')stab=id;
+if(a==='btab')btab=id;
+if(a==='ftab')fsub=id;
+if(a==='snd'){var sm=!S.snd.fx?1:S.snd.mus?0:2;S.snd={fx:sm>0?1:0,mus:sm===2?1:0};if(sm===2)musStart();else musStop();toast(['Звук выключен','Звуки включены','Звуки и музыка включены'][sm])}
+if(a==='petbuy'){var pq=by(PETS,id);if(pq&&S.lvl>=pq.ul&&cb(pq)&&S.pets[id]===undefined){pay(pq);S.pets[id]=Date.now();if(!S.pa)S.pa=id;sfx('buy');toast('У тебя новый питомец: '+pq.n)}}
+if(a==='petsel'&&S.pets[id]!==undefined)S.pa=id;
+if(a==='petfeed'&&S.pets[id]!==undefined&&S.c>=15&&psat(id)<100){S.c-=15;S.pets[id]=Date.now();sfx('claim');toast('Питомец сыт')}
+if(a==='acl'){var ac1=by(ACH,id);if(ac1&&ac1.v()>=ac1.g&&S.ac.indexOf(id)<0){S.ac.push(id);grant(ac1.r);if(!S.ti)S.ti=id;sfx('claim');toast('Достижение: '+ac1.n+'. Награда: '+rtxt(ac1.r))}}
+if(a==='ati'&&S.ac.indexOf(id)>-1)S.ti=id;
+if(a==='evgo'&&A&&A.ev)A={ph:'ev',e:A.ev};
+if(a==='evopt'&&A&&A.ph==='ev'){var eo=A.e.o[+id];if(eo&&!(eo.need&&S.c<eo.need)){var er=eo.f();A={ph:'res',title:A.e.n,L2:[er]}}}
+if(a==='tofu'){tab='forge';fsub='uniq'}
+if(a==='toore'){tab='bag';btab='ore'}
+if(a==='topot'){tab='bag';btab='potions'}
+if(a==='st'&&S.pts>0){S.pts--;S.st[id]++}
+if(a==='skup'){var sr=S.sk[id]||0,sc=sr===0?2:1;if(sr<3&&S.pts>=sc){S.pts-=sc;S.sk[id]=sr+1;toast('Умение улучшено: '+by(ABIL,id).n);sfx('up')}}
+if(a==='task')openTask(id);
+if(a==='chest'){S.chest=true;gain(30,25,2);sfx('claim');toast('Сундук: +25 монет, +30 опыта, +2 кристалла')}
+if(a==='claim'){var q=by(QUESTS,id);S.qc.push(id);gain(q.xp,q.c,q.cr);sfx('claim');toast('Квест выполнен: '+q.n)}
+if(a==='buy'){var i=by(CLO,id);if(!i||i.u||S.lvl<i.ul||!cb(i)||S.own.indexOf(id)>-1)return;pay(i);sfx('buy');S.own.push(id);if(!S.eq[i.slot])S.eq[i.slot]=id;toast('Куплено: '+i.n+(S.eq[i.slot]===id?'':'. Надень в рюкзаке'))}
+if(a==='eq'){var j=by(CLO,id);S.eq[j.slot]=S.eq[j.slot]===id?null:id}
+if(a==='wbuy'){var w=by(W,id);if(!w||w.u||S.lvl<w.ul||!cb(w)||S.wo.indexOf(id)>-1)return;pay(w);sfx('buy');S.wo.push(id);S.wl[id]=S.wl[id]||0;toast('В рюкзаке: '+w.n)}
+if(a==='weq')S.we=id;
+if(a==='pbuy'){var p=by(POTS,id);S.c-=p.p;sfx('buy');S.pot[id]++;toast('Куплено: '+p.n)}
+if(a==='obuy'){var ob=by(ORES,id);if(ob&&S.lvl>=ob.ul&&S.c>=ob.p){S.c-=ob.p;sfx('buy');oadd(id,1);toast('+1 '+ob.n.toLowerCase())}}
+if(a==='drink'){var d=by(POTS,id);S.pot[id]--;S.en=d.full?MAXEN:Math.min(MAXEN,S.en+d.e);toast('Энергия: '+S.en+'/'+MAXEN)}
+if(a==='smith'&&(S.wl[id]||0)<5&&S.c>=20*((S.wl[id]||0)+1)&&oget(oid(id))>=(S.wl[id]||0)+1){var l=S.wl[id]||0;S.c-=20*(l+1);if(Math.random()*100<CH[l]){oadd(oid(id),-(l+1));S.wl[id]=l+1;sfx('forge');toast('Ковка удалась: уровень '+(l+1))}else{sfx('fail');toast('Ковка не удалась. Монеты потеряны, руда осталась')}}
+if(a==='temper'&&(S.wl[id]||0)<5&&S.c>=10*((S.wl[id]||0)+1)&&S.cr>=(S.wl[id]||0)+1){var l2=S.wl[id]||0;S.c-=10*(l2+1);S.cr-=l2+1;S.wl[id]=l2+1;sfx('forge');toast('Закалка: уровень '+(l2+1))}
+if(a==='eyec'&&A&&A.ph==='eyes')S.eye=id;
+if(a==='eyeok'&&A&&A.ph==='eyes'){S.eyeSet=1;A=null;maybeStory()}
+if(a==='dclaim'&&dailyReady()){var yy=S.lg.d===yday()?S.lg.n:0,rw=DAILY[yy%7];S.lg={d:today(),n:yy+1};S.c+=rw.c||0;S.cr+=rw.cr||0;S.ore+=rw.ore||0;ORES.forEach(function(o){if(o.id!=='iron'&&rw[o.id])oadd(o.id,rw[o.id])});['p1','p2','p3'].forEach(function(k){S.pot[k]+=rw[k]||0});sfx('claim');toast('День '+(yy%7+1)+': '+rtxt(rw));if(A&&A.ph==='daily'){A=null;maybeStory()}}
+if(a==='fight')openBattle(id);
+if(a==='xgo'&&!S.exp){var x0=by(EXP,id);if(S.en>=x0.e&&S.lvl>=x0.ul){S.en-=x0.e;S.exp={id:id,end:Date.now()+x0.dur*1000,dur:x0.dur};XN=0;toast('Ноа отправился: '+x0.n)}}
+if(a==='xclaim'&&S.exp&&Date.now()>=S.exp.end){var x=by(EXP,S.exp.id),got=[];gain(x.xp,x.c,x.cr);S.ore+=x.ore;for(var ek in (x.ox||{}))oadd(ek,x.ox[ek]);x.dr.forEach(function(d){if(Math.random()<d[1]){S.sh[d[0]]=(S.sh[d[0]]||0)+1;got.push(by(UNIQ,d[0]).n)}});S.exp=null;
+A={ph:'res',title:'Поход завершён',L2:[x.txt,'Награда: +'+x.xp+' опыта, +'+x.c+' монет'+(x.ore?', +'+x.ore+' руды':'')+otext(x.ox)+(x.cr?', +'+x.cr+' кристалла':'')+'.',!x.dr.length?'':got.length?'Найдены осколки: '+got.join(', ')+'.':'Осколков на этот раз не нашлось.'],ev:Math.random()<.5?EV[rnd(EV.length)]:null};S.xn=(S.xn||0)+1;sfx('claim')}
+if(a==='craft'){var u=by(UNIQ,id),have=S.sh[id]||0,uc=UC[id];if(u&&uc&&have>=u.need&&oget(uc.o)>=uc.n&&S.c>=uc.c){if(u.slot){if(S.own.indexOf(id)<0){S.sh[id]-=u.need;oadd(uc.o,-uc.n);S.c-=uc.c;S.own.push(id);if(!S.eq[u.slot])S.eq[u.slot]=id;sfx('up');toast('Собрано: '+u.n)}}else if(S.wo.indexOf(id)<0){S.sh[id]-=u.need;oadd(uc.o,-uc.n);S.c-=uc.c;S.wo.push(id);S.wl[id]=0;sfx('up');toast('Собрано: '+u.n)}}}
+if(a==='tstart'&&A&&A.ph==='intro'&&S.en>=A.t.e){S.en-=A.t.e;initGame()}
+if(a==='tretry'&&A&&A.ph==='done'&&S.en>=A.t.e)A.ph='intro';
+if(a==='aclose'){clr();A=null}
+if(a==='g'&&A&&A.ph==='play')gclick(id);
+if(a==='next'&&A&&A.ph==='talk'){A.i++;if(A.i>=A.L.length){var af=A.after;A=null;if(af)af()}}
+if(a==='sread'&&STORY[S.ch])talk(STORY[S.ch].intro);
+if(a==='sdone'){var c=STORY[S.ch];if(c&&c.v()>=c.g)talk(c.out,function(){var r=c.r;gain(r.xp||0,r.c||0,r.cr||0);S.ore+=r.ore||0;S.ch++;save();toast('Глава завершена');render();maybeStory()})}
+if((a==='atk'||(a==='sk'&&id==='pw'&&S.sk.pw>0&&B&&B.cd.pw<=0))&&B&&!B.busy&&!B.over){var r=pdmg(),bar=B.b.ar||(B.b.sp==='armor'?.15:0);tickcd();if(a==='sk'){r.d=Math.round(r.d*(1.8+.2*S.sk.pw));B.cd.pw=3;B.log.push('Мощный удар!')}sfx(r.cr||a==='sk'?'crit':'hit');if(bar)r.d=Math.round(r.d*(1-bar));B.bh-=r.d;B.log.push('Ноа бьёт: '+r.d+(r.cr?' (крит)':''));B.num={t:'-'+r.d,w:'b'};B.anim='pl';B.hit='b';B.busy=true;if(B.bh<=0){B.over=1;B.busy=false;winBattle();setTimeout(function(){if(B){B.vic=1;drawBattle()}},900)}else{if(B.b.sp==='thorns'){var th=Math.round(r.d*.1);B.ph-=th;B.log.push('Колючая чешуя ранит Ноа: '+th)}if(B.ph<=0){B.over=-1;B.log.push('Ноа повержен. Прокачай навыки и оружие.')}else bturn()}}
+if(a==='sk'&&B&&!B.busy&&!B.over&&(id==='hl'||id==='st')&&S.sk[id]>0&&B.cd[id]<=0){tickcd();if(id==='hl'){var hv=Math.round(B.pmax*(.2+.05*S.sk.hl));B.ph=Math.min(B.pmax,B.ph+hv);B.cd.hl=5;B.log.push('Ноа исцеляется: +'+hv);B.num={t:'+'+hv,w:'p'};sfx('heal')}else{B.stun=1;B.cd.st=6-S.sk.st;B.log.push('Ноа оглушает: '+B.b.n);B.num={t:'оглушён',w:'b'};sfx('skill')}B.anim='';B.hit='';B.busy=true;bturn()}
+if(a==='blk'&&B&&!B.busy&&!B.over){tickcd();B.blk=true;B.busy=true;B.num=null;B.anim='';B.hit='';B.log.push('Ноа прячется за щитом и гардом');bturn()}
+if(a==='run'&&B&&!B.over&&!B.busy){B=null;toast('Ноа отступил')}
+if(a==='end')B=null;
+if(a==='reset'){var go=function(){S=fresh();last=null;save();render()};if(TG&&TG.showConfirm)TG.showConfirm('Начать игру заново?',function(ok){if(ok)go()});else if(confirm('Начать игру заново?'))go()}
+save();render();drawBattle();drawAct()});
+setInterval(function(){var o=S.en;regen();if(S.en!==o){save();render()}},5000);
+var XN=0;
+setInterval(function(){if(!S.exp)return;var left=Math.max(0,Math.ceil((S.exp.end-Date.now())/1000));
+if(left<=0){if(!XN){XN=1;render()}return}
+var e=document.getElementById('et');if(e){e.textContent='Идёт поход. Осталось '+fmt(left);var b=document.getElementById('eb');if(b)b.style.width=Math.min(100,(1-left/(S.exp.dur||1))*100)+'%'}},1000);
+if(TG){try{TG.ready();TG.expand();var bg=getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();if(TG.setHeaderColor)TG.setHeaderColor(bg);if(TG.setBackgroundColor)TG.setBackgroundColor(bg);if(TG.BackButton)TG.BackButton.onClick(function(){if(A||B)return;tab='hero';render()})}catch(e){}}
+render();
+if(CS){CS.getItem('noa',function(err,v){try{if(!err&&v){var c=JSON.parse(v);if((c.ts||0)>(S.ts||0)){S=c;S.ore=S.ore||0;S.pot=S.pot||{p1:0,p2:0,p3:0};S.wl=S.wl||{};S.ch=S.ch||0;S.seen=S.seen||{};S.sh=S.sh||{};S.exp=S.exp||null;migrate();S.eye=S.eye||rndEye();S.lg=S.lg||{d:'',n:0};S.ox=S.ox||{copper:0,silver:0,mithril:0,gold:0};MAXEN=14+S.lvl;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}}}catch(e){}render();startFlow()})}else startFlow();
+</script>
+</body>
+</html>
