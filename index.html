@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Ноа: симулятор путника</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:wght@400;700&display=swap">
 <style>
@@ -12,7 +12,7 @@ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:en
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d181d;--card:#152830;--ink:#e6eff1;--mut:#8fa6ac;--line:#24404a;--acc:#e9a93b;--ok:#6fc29a;--sky:#1d3f4f;--gr:#2f5a45}}
 :root[data-theme="dark"]{--bg:#0d181d;--card:#152830;--ink:#e6eff1;--mut:#8fa6ac;--line:#24404a;--acc:#e9a93b;--ok:#6fc29a;--sky:#1d3f4f;--gr:#2f5a45}
 *{box-sizing:border-box}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);touch-action:pan-y;-webkit-text-size-adjust:100%;text-size-adjust:100%}body,#app,#panel{touch-action:pan-y}
 body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.45 Alegreya,Georgia,serif}
 html,body{height:100%;overflow:hidden}#app{max-width:480px;margin:0 auto;height:100%;display:flex;flex-direction:column;padding:8px 14px 0}#hud{flex:none}#panel{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:2px 2px 14px}
 .top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
@@ -135,6 +135,10 @@ pets:['#ea8fac','#a4416a','<g fill="#f3b57f" stroke="#6b3d1c" stroke-width="1.4"
 stats:['#6a90e2','#27479a','<path d="M16 2.6l11.5 4.2v8.4c0 7.2-5 11.4-11.5 14.2C9.5 26.6 4.5 22.4 4.5 15.2V6.8z" fill="#4673c4" stroke="#1b2d57" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 6l8.2 3v6.2c0 5-3.4 8.2-8.2 10.4-4.8-2.2-8.2-5.4-8.2-10.4V9z" fill="#6397e6"/><path d="M16 9v13.5M10.6 14.2h10.8" stroke="#ffd84a" stroke-width="2.4" stroke-linecap="round"/><path d="M16 9v13.5M10.6 14.2h10.8" stroke="#7a4e00" stroke-width=".6" stroke-linecap="round"/>'],
 ach:['#d9b65c','#7f5f15','<rect x="6" y="3.6" width="20" height="24.8" rx="2.6" fill="#7e41a6" stroke="#2c1240" stroke-width="1.5"/><rect x="8.6" y="3.6" width="2.4" height="24.8" fill="#5c2a7d"/><path d="M26 6.4v19.2" stroke="#f6e7bd" stroke-width="1.6"/><path d="M18 10l3.8 3.2-3.8 5.4-3.8-5.4z" fill="#73e2ff" stroke="#145a78" stroke-width="1.2" stroke-linejoin="round"/><path d="M14.2 13.2h7.6" stroke="#145a78" stroke-width=".9"/><path d="M13.5 23h9" stroke="#ffd84a" stroke-width="1.7" stroke-linecap="round"/>']};
 function ic3(k,fb){var d=ICN[k];if(!d)return '<span class="ic">'+fb+'</span>';return '<span class="ic3" style="background:linear-gradient(160deg,'+d[0]+','+d[1]+')"><svg viewBox="0 0 32 32" aria-hidden="true">'+d[2]+'</svg></span>'}
+['gesturestart','gesturechange','gestureend'].forEach(function(e){document.addEventListener(e,function(ev){ev.preventDefault()})});
+document.addEventListener('touchmove',function(ev){if(ev.touches&&ev.touches.length>1)ev.preventDefault()},{passive:false});
+document.addEventListener('wheel',function(ev){if(ev.ctrlKey)ev.preventDefault()},{passive:false});
+var lt0=0;document.addEventListener('touchend',function(ev){var n=Date.now();if(n-lt0<350)ev.preventDefault();lt0=n},{passive:false});
 var WATCH=[{id:'s',n:'Короткий дозор',h:2,k:.25},{id:'n',n:'Ночной дозор',h:8,k:1}];
 var WSTORY=['Ноа смотрел на огни Маяка и слушал, как море шепчет о старых кораблях.','Ночью в тумане мелькнула тень, но Ноа не дрогнул, и тень ушла.','Мира принесла горячий чай и осталась рядом до рассвета.','Ферн передал со стаей чаек весточку: на архипелаге всё спокойно.','Ноа заметил на скалах блеск и нашёл в расщелине немного руды.'];
 var DEVS=[{id:'pearl',n:'Ночь жемчуга',d:'Шанс найти жемчужину вдвое выше.'},{id:'mine',n:'День шахтёров',d:'Вся добываемая руда ×1.5.'},{id:'storm',n:'День шторма',d:'За победу над боссом опыт +30%.'},{id:'shop',n:'День торговцев',d:'Руда в лавке дешевле на 25%.'},{id:'forge',n:'День кузнецов',d:'Ковка дешевле на 30% монет.'},{id:'pet',n:'День питомцев',d:'Кормление бесплатно, опыт питомцев ×2.'},{id:'luck',n:'День удачи',d:'Шанс крита +5%, монеты за боссов +25%.'}];
