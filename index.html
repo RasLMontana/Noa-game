@@ -139,6 +139,8 @@ function ic3(k,fb){var d=ICN[k];if(!d)return '<span class="ic">'+fb+'</span>';re
 document.addEventListener('touchmove',function(ev){if(ev.touches&&ev.touches.length>1)ev.preventDefault()},{passive:false});
 document.addEventListener('wheel',function(ev){if(ev.ctrlKey)ev.preventDefault()},{passive:false});
 var lt0=0;document.addEventListener('touchend',function(ev){var n=Date.now();if(n-lt0<350)ev.preventDefault();lt0=n},{passive:false});
+var POTLIM=2;function potLeft(){if(!S.pb||S.pb.d!==today())S.pb={d:today(),n:0,e:0};return Math.max(0,POTLIM-S.pb.n)}
+function potOk(id){return potLeft()>0&&!(id==='p3'&&S.pb.e>=1)}
 var WATCH=[{id:'s',n:'Короткий дозор',h:2,k:.25},{id:'n',n:'Ночной дозор',h:8,k:1}];
 var WSTORY=['Ноа смотрел на огни Маяка и слушал, как море шепчет о старых кораблях.','Ночью в тумане мелькнула тень, но Ноа не дрогнул, и тень ушла.','Мира принесла горячий чай и осталась рядом до рассвета.','Ферн передал со стаей чаек весточку: на архипелаге всё спокойно.','Ноа заметил на скалах блеск и нашёл в расщелине немного руды.'];
 var DEVS=[{id:'pearl',n:'Ночь жемчуга',d:'Шанс найти жемчужину вдвое выше.'},{id:'mine',n:'День шахтёров',d:'Вся добываемая руда ×1.5.'},{id:'storm',n:'День шторма',d:'За победу над боссом опыт +30%.'},{id:'shop',n:'День торговцев',d:'Руда в лавке дешевле на 25%.'},{id:'forge',n:'День кузнецов',d:'Ковка дешевле на 30% монет.'},{id:'pet',n:'День питомцев',d:'Кормление бесплатно, опыт питомцев ×2.'},{id:'luck',n:'День удачи',d:'Шанс крита +5%, монеты за боссов +25%.'}];
@@ -439,7 +441,7 @@ var EV=[
 {n:'Старый алтарь',t:'В кустах стоит заброшенный алтарь с углублением для монет.',o:[{t:'Оставить 30 монет',need:30,f:function(){S.c-=30;if(Math.random()<.6){S.cr+=2;return 'Алтарь вспыхнул. Ноа нашёл 2 кристалла.'}return 'Алтарь промолчал. Монеты пропали.'}},{t:'Не трогать',f:function(){return 'Ноа обошёл алтарь стороной.'}}]},
 {n:'Логово зверя',t:'Из пещеры доносится рык. Там может быть добыча, а может быть беда.',o:[{t:'Напасть',f:function(){if(Math.random()<Math.min(.8,.5+S.lvl*.02)){gain(80,40,0);return 'Ноа одолел зверя. +80 опыта и 40 монет.'}S.en=Math.max(0,S.en-3);return 'Зверь оказался сильнее. Ноа потерял 3 энергии.'}},{t:'Обойти',f:function(){gain(10,0,0);return 'Ноа тихо обошёл пещеру. +10 опыта.'}}]},
 {n:'Тайник в руинах',t:'Среди обломков виден свежий след лопаты. Кто-то прятал здесь что-то ценное.',o:[{t:'Раскопать',f:function(){if(Math.random()<.5){var u=UNIQ[rnd(UNIQ.length)];S.sh[u.id]=(S.sh[u.id]||0)+1;return 'Ноа откопал осколок: '+u.n+'.'}var c=20+rnd(30);S.c+=c;return 'В тайнике было лишь '+c+' монет.'}},{t:'Пропустить',f:function(){return 'Ноа не стал копаться в чужих тайнах.'}}]}];
-function migrate(){S.pr=S.pr||0;S.sl=S.sl||{a:0,h:0,e:0};S.pets=S.pets||{};S.pl=S.pl||{};S.pa=S.pa||null;S.sk=S.sk||{pw:0,hl:0,st:0};S.snd=S.snd||{fx:1,mus:0};S.ac=S.ac||[];S.ti=S.ti||null;S.xn=S.xn||0;S.wt=S.wt||null;S.wn=S.wn||0;S.dx=S.dx||{b:{},p:{},o:{}};S.dxc=S.dxc||{}}
+function migrate(){S.pr=S.pr||0;S.sl=S.sl||{a:0,h:0,e:0};S.pets=S.pets||{};S.pl=S.pl||{};S.pa=S.pa||null;S.sk=S.sk||{pw:0,hl:0,st:0};S.snd=S.snd||{fx:1,mus:0};S.ac=S.ac||[];S.ti=S.ti||null;S.xn=S.xn||0;S.wt=S.wt||null;S.wn=S.wn||0;S.pb=S.pb||{d:'',n:0};S.dx=S.dx||{b:{},p:{},o:{}};S.dxc=S.dxc||{}}
 function load(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}}
 var TG=window.Telegram&&Telegram.WebApp,CS=TG&&TG.CloudStorage&&TG.isVersionAtLeast&&TG.isVersionAtLeast('6.9')?TG.CloudStorage:null,cst=null;
 function save(){S.ts=Date.now();var j=JSON.stringify(S);try{localStorage.setItem(KEY,j)}catch(e){}
@@ -661,7 +663,7 @@ function forgeBar(){return '<div class="chips">'+FTABS.map(function(t){return '<
 var btab='potions',BTABS=[['potions','Зелья','🧪'],['weapons','Оружие','⚔️'],['helm','Шлемы','⛑️'],['armor','Доспехи','🛡️'],['hands','Перчатки','🧤'],['boots','Сапоги','👢'],['cape','Плащи','🧣'],['shield','Щиты','🔰'],['ore','Руда','⛏️']];
 function bagBar(){return '<div class="chips">'+BTABS.map(function(t){return '<button class="'+(btab===t[0]?'on':'')+'" data-a="btab" data-id="'+t[0]+'">'+t[2]+' '+t[1]+'</button>'}).join('')+'</div>'}
 var SL=[['helm','Шлем','Шлемы'],['armor','Доспех','Доспехи'],['hands','Перчатки','Перчатки'],['boots','Сапоги','Сапоги'],['cape','Плащ','Плащи'],['shield','Щит','Щиты']],CH=[100,85,70,55,40];
-var POTS=[{id:'p1',n:'Малое зелье энергии',e:4,p:16,col:'#4aa3e0'},{id:'p2',n:'Зелье энергии',e:8,p:30,col:'#8a5cd6'},{id:'p3',n:'Большой эликсир',e:15,full:1,p:55,col:'#e8a62e'}];
+var POTS=[{id:'p1',n:'Малое зелье энергии',e:4,p:48,col:'#4aa3e0'},{id:'p2',n:'Зелье энергии',e:8,p:90,col:'#8a5cd6'},{id:'p3',n:'Большой эликсир',e:15,full:1,p:165,col:'#e8a62e'}];
 function nm(i){var l=S.wl[i.id]||0;return i.n+(l?' +'+l:'')}
 function stext(i,l){var o=[],hp=ist(i,'hp',l),at=ist(i,'atk',l);if(hp)o.push('+'+hp+' здоровья');if(at)o.push('+'+at+' атаки');return o.join(', ')}
 var UNIQ=W.filter(function(x){return x.u}).concat(CLO.filter(function(x){return x.u}));
@@ -803,7 +805,7 @@ else if(fsub==='uniq'){h+=row('','Как собрать уникальный п�
 h+='<div class="row'+(own?' dn':'')+'">'+swr(u)+'<div class="tx">'+u.n+' '+rb(u)+'<small>'+(u.slot?stext(u,0):'Урон '+u.d)+'<br>Осколки: '+Math.min(have,u.need)+'/'+u.need+'<br>Руда: '+orr.ic+' '+orr.n+' '+Math.min(ho,uc.n)+'/'+uc.n+'<br>Монеты: '+uc.c+'</small><div class="bar"><i style="width:'+Math.min(100,have/u.need*100)+'%"></i></div></div>'+bt('craft',u.id,own?'Собрано':'Собрать',own||!ok,ok&&!own?'buy':'')+'</div>'});}
 else{h+=fres;SL.forEach(function(g){if(fsub!==g[0])return;h+='<h2>'+g[2]+'</h2>';var any=0;S.own.forEach(function(id){var i=by(CLO,id);if(i.slot!==g[0])return;any=1;var l=S.wl[id]||0;h+=frow(swr(i),i.n,rb(i)+' · '+stext(i,l)+(l<5?' → '+stext(i,l+1):''),id,l)});if(!any)h+=row('','Здесь пока пусто','Купи в лавке или собери уникальный предмет')})}
 }
-if(tab==='shop'){if(stab==='potions'){h+='<h2>Зелья энергии</h2>';POTS.forEach(function(p){h+=row(flask(p.col),p.n+' (в рюкзаке: '+S.pot[p.id]+')',(p.full?'Вся энергия':'+'+p.e+' энергии')+' · '+p.p+' монет',bt('pbuy',p.id,'Купить',S.c<p.p,'buy'))})}
+if(tab==='shop'){if(stab==='potions'){h+='<h2>Зелья энергии</h2>'+row('','Дневной лимит покупок: '+potLeft()+' из '+POTLIM,'Можно купить всего '+POTLIM+' зелья в день, любых. Большой эликсир: не больше 1 в день'+(S.pb.e?' (сегодня уже куплен)':'')+'. Лимит обновляется каждый день.',null,!potLeft());POTS.forEach(function(p){h+=row(flask(p.col),p.n+' (в рюкзаке: '+S.pot[p.id]+')',(p.full?'Вся энергия':'+'+p.e+' энергии')+' · '+p.p+' монет',bt('pbuy',p.id,potOk(p.id)?'Купить':'Лимит',S.c<p.p||!potOk(p.id),'buy'))})}
 if(stab==='pearl')h+=pearlTab();
 if(stab==='pets'){h+='<h2>Питомцы</h2>'+row('','Питомец идёт рядом с Ноа и даёт бонус, пока сыт','Кормить можно в рюкзаке за 15 монет. Сытость падает на 10% в час, ниже 25% бонус не работает.');PETS.forEach(function(p){var own=S.pets[p.id]!==undefined,lock=S.lvl<p.ul;h+=row(petIco(p),p.n+' '+rb(p),p.bt+' · '+(own?'у тебя':(lock?'откроется на уровне '+p.ul+' · ':'')+ptxt(p)),own?bt('x','x','Куплен',1):bt('petbuy',p.id,'Купить',lock||!cb(p),'buy'),lock&&!own)})}
 if(stab==='mats'){h+='<h2>Руда</h2>';ORES.forEach(function(o){var lk=S.lvl<o.ul;h+=row(oib(o),o.n+' (у вас: '+oget(o.id)+')',oprice(o)+' монет за штуку · нужна: '+oused(o.id)+(lk?' · откроется на уровне '+o.ul:''),bt('obuy',o.id,'Купить',lk||S.c<oprice(o),'buy'),lk)})}
@@ -851,7 +853,7 @@ if(a==='buy'){var i=by(CLO,id);if(!i||i.u||S.lvl<i.ul||!cb(i)||S.own.indexOf(id)
 if(a==='eq'){var j=by(CLO,id);S.eq[j.slot]=S.eq[j.slot]===id?null:id}
 if(a==='wbuy'){var w=by(W,id);if(!w||w.u||S.lvl<w.ul||!cb(w)||S.wo.indexOf(id)>-1)return;pay(w);sfx('buy');S.wo.push(id);S.wl[id]=S.wl[id]||0;toast('В рюкзаке: '+w.n)}
 if(a==='weq')S.we=id;
-if(a==='pbuy'){var p=by(POTS,id);S.c-=p.p;sfx('buy');S.pot[id]++;toast('Куплено: '+p.n)}
+if(a==='pbuy'){var p=by(POTS,id);if(!p||S.c<p.p||!potOk(id)){toast(!potOk(id)?'Дневной лимит покупок исчерпан':'Не хватает монет')}else{S.pb.n++;if(id==='p3')S.pb.e=(S.pb.e||0)+1;S.c-=p.p;sfx('buy');S.pot[id]++;toast('Куплено: '+p.n+' (осталось сегодня: '+potLeft()+')')}}
 if(a==='obuy'){var ob=by(ORES,id);if(ob&&S.lvl>=ob.ul&&S.c>=oprice(ob)){S.c-=oprice(ob);sfx('buy');oadd(id,1);toast('+1 '+ob.n.toLowerCase())}}
 if(a==='drink'){var d=by(POTS,id);S.pot[id]--;S.en=d.full?MAXEN:Math.min(MAXEN,S.en+d.e);toast('Энергия: '+S.en+'/'+MAXEN)}
 if(a==='smith'&&(S.wl[id]||0)<5&&S.c>=fcm(20*((S.wl[id]||0)+1))&&oget(oid(id))>=(S.wl[id]||0)+1){var l=S.wl[id]||0;S.c-=fcm(20*(l+1));if(Math.random()*100<CH[l]){oadd(oid(id),-(l+1));S.wl[id]=l+1;sfx('forge');toast('Ковка удалась: уровень '+(l+1))}else{sfx('fail');toast('Ковка не удалась. Монеты потеряны, руда осталась')}}
