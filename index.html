@@ -944,6 +944,7 @@ var EXP=[
 {id:'m5',mine:1,main:'gold',n:'Золотая шахта',dur:1080,e:5,ul:8,xp:130,c:70,ore:0,ox:{gold:3},cr:2,dr:[],txt:'В золотой шахте Ноа едва не завалило, но добыча того стоила.'},
 {id:'m6',mine:1,main:'star',n:'Звёздная копь',dur:1500,e:6,ul:14,xp:200,c:110,ore:0,ox:{star:1},cr:3,dr:[],txt:'В глубокой копи руда мерцала, как созвездие. Добыча была тяжёлой, но редкой.'}];
 EXP.forEach(function(x){x.dur=Math.round(x.dur*2);x.xp=Math.round(x.xp*.6);if(x.ore)x.ore=Math.max(1,Math.round(x.ore*.6));if(x.ox)for(var k in x.ox)x.ox[k]=Math.max(1,Math.round(x.ox[k]*.6))});
+EXP.forEach(function(x){x.e=0;x.xp=Math.round(x.xp*1.25)});
 var TT={city:'Подводный город',daily:'Награды за вход',tasks:'Дела и походы',quests:'Сюжет',boss:'Бои',skills:'Навыки',forge:'Кузница',shop:'Лавка',bag:'Рюкзак',stats:'Характеристики',ach:'Книга Маяка',pets:'Питомцы'};
 function fmt(s){return Math.floor(s/60)+':'+('0'+s%60).slice(-2)}
 function kv(a,b){return '<div class="kv"><span>'+a+'</span><b>'+b+'</b></div>'}
@@ -1041,7 +1042,7 @@ if(S.exp&&!by(EXP,S.exp.id))S.exp=null;if(S.wt&&!by(WATCH,S.wt.id))S.wt=null;
 h+=evRow()+'<h2>Задания</h2>'+subRow()+'<h2>Ночной дозор</h2>'+watchHtml()+'<h2>Руины</h2>'+ruinHtml()+'<h2>Походы</h2>';
 if(S.exp){var ex=by(EXP,S.exp.id),left=Math.max(0,Math.ceil((S.exp.end-Date.now())/1000)),pc=Math.min(100,(1-left/(S.exp.dur||1))*100);
 h+='<div class="row"><div class="tx"><b>'+ex.n+'</b><small id="et">'+(left?'Идёт поход. Осталось '+fmt(left):'Ноа вернулся. Забери добычу.')+'</small><div class="tbar"><i id="eb" style="width:'+pc+'%"></i></div></div>'+(left?'':bt('xclaim','x','Забрать',0,'buy'))+'</div>'}
-else{var xr=function(x){var lock=S.lvl<x.ul;h+=row(x.mine?oib(by(ORES,x.main)):'',x.n+' ('+x.dur/60+' мин)','Энергия '+x.e+' · +'+x.xp+' опыта, +'+x.c+' монет'+(x.ore?', +'+x.ore+' руды':'')+otext(x.ox)+(x.cr?', +'+x.cr+' крист.':'')+(x.dr.length?'<br>Осколки: '+x.dr.map(function(d){return by(UNIQ,d[0]).n+' '+Math.round(d[1]*100)+'%'}).join(', '):'')+(lock?'<br>🔒 Нужен '+x.ul+' уровень (у вас '+S.lvl+')':''),bt('xgo',x.id,lock?'Закрыто':'В поход',lock||S.en<x.e,'buy'),lock)};
+else{var xr=function(x){var lock=S.lvl<x.ul;h+=row(x.mine?oib(by(ORES,x.main)):'',x.n+' ('+x.dur/60+' мин)','+'+x.xp+' опыта, +'+x.c+' монет'+(x.ore?', +'+x.ore+' руды':'')+otext(x.ox)+(x.cr?', +'+x.cr+' крист.':'')+(x.dr.length?'<br>Осколки: '+x.dr.map(function(d){return by(UNIQ,d[0]).n+' '+Math.round(d[1]*100)+'%'}).join(', '):'')+(lock?'<br>🔒 Нужен '+x.ul+' уровень (у вас '+S.lvl+')':''),bt('xgo',x.id,lock?'Закрыто':'В поход',lock||S.en<x.e,'buy'),lock)};
 EXP.filter(function(x){return !x.mine}).forEach(xr);h+='<h2>Добыча руды</h2>';EXP.filter(function(x){return x.mine}).forEach(xr)}
 h+=row('','Уникальные предметы','Осколки из походов собираются в кузнице, во вкладке «Уникальные».',bt('tofu','x','В кузницу',0,'alt'));
 h+='<h2>Задания на сегодня ('+S.done.length+'/'+TASKS.length+')</h2>';
