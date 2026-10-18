@@ -799,6 +799,38 @@ function payo(p){for(var k in p.o)oadd(k,-p.o[k])}
 function potOre(p){var t='';for(var k in p.o){var o=by(ORES,k);t+=' · '+o.ic+' '+o.n.toLowerCase()+' ×'+p.o[k]}return t}
 var BLIM=4;var RELICS=['kcrown','lheart','sglove','mboots','eshield','fcape','rsword','rbow','rstaff'];
 function relicOwn(id){return S.own.indexOf(id)>-1||S.wo.indexOf(id)>-1}
+var DEVID=611637098;
+function isDev(){try{var w=window.Telegram&&window.Telegram.WebApp,u=w&&w.initDataUnsafe&&w.initDataUnsafe.user;return !!(u&&u.id===DEVID)}catch(e){return false}}
+function devAct(id){
+if(!isDev())return;
+var n,m={c:function(){S.c+=10000},cr:function(){S.cr+=100},pr:function(){S.pr=(S.pr||0)+20},
+en:function(){S.en=MAXEN+50},
+l1:function(){if(S.lvl<42){S.lvl++;S.pts++;S.xp=0}},
+l5:function(){S.lvl=Math.min(42,S.lvl+5);S.pts+=5;S.xp=0},
+l42:function(){S.pts+=42-S.lvl;S.lvl=42;S.xp=0},
+lm:function(){if(S.lvl>1){S.lvl--;S.xp=0}},
+xp:function(){gain(need(S.lvl),0,0)},
+pts:function(){S.pts+=5},
+ore:function(){ORES.forEach(function(o){oadd(o.id,100)})},
+pot:function(){['p1','p2','p3','b1','b2','b3','b4','b5','b6'].forEach(function(k){S.pot[k]=(S.pot[k]||0)+5})},
+plim:function(){S.pb={d:'',n:0}},
+chp:function(){if(S.ch<STORY.length)S.ch++},
+chm:function(){if(S.ch>0)S.ch--},
+chall:function(){S.ch=STORY.length},
+tm:function(){if(S.exp)S.exp.end=Date.now();if(S.wt)S.wt.end=Date.now();if(S.cb)S.cb.end=Date.now();XN=0;WNF=0},
+rn:function(){S.rd='';S.rn=null},
+dl:function(){S.lg={d:'',n:0}},
+rel:function(){RELICS.forEach(function(x){if(!relicOwn(x)){if(by(CLO,x))S.own.push(x);else S.wo.push(x)}})}};
+if(m[id]){m[id]();MAXEN=14+S.lvl+((S.sl&&S.sl.e)||0);toast('Готово')}
+}
+function devHtml(){
+var u=window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.initDataUnsafe&&window.Telegram.WebApp.initDataUnsafe.user,h='<h2>Панель разработчика</h2>'+row('','ID: '+(u?u.id:'?'),'Видна только владельцу. Ур. '+S.lvl+', монеты '+S.c+', кристаллы '+S.cr+', энергия '+S.en+'/'+MAXEN+', глава '+S.ch+'/'+STORY.length+'.');
+var g=function(t,l){return '<h2>'+t+'</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px">'+l.map(function(x){return bt('dv',x[0],x[1],0,'alt')}).join('')+'</div>'};
+h+=g('Ресурсы',[['c','+10000 монет'],['cr','+100 кристаллов'],['pr','+20 жемчуга'],['ore','+100 каждой руды'],['en','Полная энергия'],['pot','+5 каждого зелья'],['plim','Сброс лимита зелий'],['rel','Все реликвии']]);
+h+=g('Уровень',[['l1','+1 уровень'],['l5','+5 уровней'],['l42','Уровень 42'],['lm','−1 уровень'],['xp','Опыт до уровня'],['pts','+5 очков навыков']]);
+h+=g('Сюжет и время',[['chp','Глава +1'],['chm','Глава −1'],['chall','Весь сюжет'],['tm','Пропустить таймеры'],['rn','Сброс руин'],['dl','Сброс награды дня']]);
+return h}
+
 function relicRoll(ch){if(Math.random()>=ch)return null;var left=RELICS.filter(function(x){return !relicOwn(x)});if(!left.length)return null;var id=left[Math.floor(Math.random()*left.length)],c=by(CLO,id);if(c)S.own.push(id);else S.wo.push(id);toast('✨ Найдена реликвия: '+(c||by(W,id)).n+'!');return(c||by(W,id)).n}
 function relicRow(){var n=RELICS.filter(relicOwn).length;return row('<span class="ic2" style="font-size:1.6rem;border-color:#ff6fd8">✨</span>','Реликвии: '+n+' из '+RELICS.length,'Особые доспехи и оружие, намного сильнее любых других. Купить или выковать их нельзя. Они могут выпасть с очень малым шансом: после боёв (1%), из экспедиций (0,5%), после ночного дозора (0,8%) и из Руин (3%). Выпадают только те, которых у вас ещё нет.')}
 function bpLeft(){return potLeft()}
@@ -914,7 +946,7 @@ if(tab==='hero'){
 var say=S.en<4?'Устал. Нужен отдых или зелье.':S.done.length>=TASKS.length?'Все дела сделаны.':'Готов к делам.',xr=S.exp&&Date.now()>=S.exp.end;
 h+='<div class="stage big">'+room()+hero()+'<div class="plate">'+curTitle()+'</div><div class="dev">🌟 '+dayEv().n+'</div>'+(S.pa&&S.pets[S.pa]!==undefined?'<div class="pet'+(psat(S.pa)<25?' hg':'')+'">'+petSvg(S.pa)+(psat(S.pa)<25?'<span>🍖</span>':'')+'</div>':'')+'<span class="say">'+say+'</span></div>';
 h+='<div class="menu">';
-[['tasks','Дела','📋',(xr||(S.wt&&Date.now()>=S.wt.end))?' ✅':(S.exp||S.wt)?' ⏳':''],['quests','Сюжет','📖',rdy?' ❗':''],['boss','Бои','⚔️',''],['skills','Навыки','✨',S.pts?' ●':''],['forge','Кузница','🔨',''],['shop','Лавка','🛒',''],['bag','Рюкзак','🎒',''],['pets','Питомцы','🐾',S.pa&&psat(S.pa)<25?' ❗':''],['city','Город','🏛️',S.cb?' ⏳':''],['stats','Герой','📊',''],['ach','Книга','📚',(achNew()||dxNew())?' ❗':''],['daily','Награды','🎁',dailyReady()?' ❗':'']].forEach(function(m){h+='<button data-a="tab" data-id="'+m[0]+'" aria-label="'+m[1]+'">'+ic3(m[0],m[2])+'<span>'+m[1]+'</span>'+(m[3]&&m[3].trim()?'<i class="bdg">'+m[3].trim()+'</i>':'')+'</button>'});h+='</div>'}
+[['tasks','Дела','📋',(xr||(S.wt&&Date.now()>=S.wt.end))?' ✅':(S.exp||S.wt)?' ⏳':''],['quests','Сюжет','📖',rdy?' ❗':''],['boss','Бои','⚔️',''],['skills','Навыки','✨',S.pts?' ●':''],['forge','Кузница','🔨',''],['shop','Лавка','🛒',''],['bag','Рюкзак','🎒',''],['pets','Питомцы','🐾',S.pa&&psat(S.pa)<25?' ❗':''],['city','Город','🏛️',S.cb?' ⏳':''],['stats','Герой','📊',''],['ach','Книга','📚',(achNew()||dxNew())?' ❗':''],['daily','Награды','🎁',dailyReady()?' ❗':'']].concat(isDev()?[['dev','Dev','🛠️','']]:[]).forEach(function(m){h+='<button data-a="tab" data-id="'+m[0]+'" aria-label="'+m[1]+'">'+ic3(m[0],m[2])+'<span>'+m[1]+'</span>'+(m[3]&&m[3].trim()?'<i class="bdg">'+m[3].trim()+'</i>':'')+'</button>'});h+='</div>'}
 if(tab==='tasks'){
 if(S.exp&&!by(EXP,S.exp.id))S.exp=null;if(S.wt&&!by(WATCH,S.wt.id))S.wt=null;
 h+=evRow()+'<h2>Задания</h2>'+subRow()+'<h2>Ночной дозор</h2>'+watchHtml()+'<h2>Руины</h2>'+ruinHtml()+'<h2>Походы</h2>';
@@ -942,6 +974,7 @@ SL.forEach(function(g){var id=S.eq[g[0]],i=id&&by(CLO,id);eqr+=kv(g[1],i?nm(i)+'
 h+=card('Бонусы экипировки',eqr+kv('Итого','+'+eqs('hp')+' здоровья, +'+eqs('atk')+' атаки'));
 var sn=setN();h+=card('Комплекты брони',Object.keys(SETS).map(function(k){var st=SETS[k],tot=CLO.filter(function(i){return i.set===k}).length;return kv(st.full,(sn[k]||0)+' / '+tot)+st.b.map(function(b){return '<div class="gi" style="margin:0 0 3px'+((sn[k]||0)>=b[0]?';color:var(--ok);font-weight:700':'')+'">'+b[0]+' предм.: '+btxt(b[1])+'</div>'}).join('')}).join(''));
 var pq2=S.pa&&by(PETS,S.pa);h+=card('Питомец',pq2?kv(pq2.n+' (ур. '+plv(pq2.id).l+')',pbt(pq2))+kv('Сытость',psat(S.pa)+'%'+(psat(S.pa)<25?' (бонус не работает)':'')):kv('Питомца нет','купи в лавке'))}
+if(tab==='dev'&&isDev())h+=devHtml();
 if(tab==='quests'){var ch=STORY[S.ch];h+='<h2>Сюжет</h2>';
 if(ch){var cv=Math.min(ch.v(),ch.g),cok=cv>=ch.g;h+='<div class="row"><div class="tx"><b>Глава '+(S.ch+1)+'. '+ch.n+'</b><small>Цель: '+ch.obj+' ('+cv+'/'+ch.g+')</small><div class="bar"><i style="width:'+Math.round(cv/ch.g*100)+'%"></i></div></div><div class="bc">'+bt('sdone','x','Завершить',!cok,cok?'buy':'')+bt('sread','x','Читать',0,'alt')+'</div></div>'}
 else h+=row('','История завершена','Император Бездны побеждён, Маяк горит ровно, а Ноа и Тень вместе. Боссов и снаряжение можно улучшать дальше.');
@@ -981,6 +1014,7 @@ if(TG&&TG.BackButton){if(tab!=='hero')TG.BackButton.show();else TG.BackButton.hi
 }
 document.addEventListener('click',function(e){var b=e.target.closest('button[data-a]');if(!b||b.disabled)return;var a=b.dataset.a,id=b.dataset.id;ac();sfx('tap');if(S.snd&&S.snd.mus)musStart();
 if(a==='tab')tab=id;
+if(a==='dv')devAct(id);
 if(a==='topearl'){tab='shop';stab='pearl'}
 if(a==='sealbuy'){var sx=by(SEALS,id),sl=sx&&S.sl[id];if(sx&&sl<5&&S.pr>=sx.c[sl]){S.pr-=sx.c[sl];S.sl[id]++;sfx('up');if(id==='e'){MAXEN=14+S.lvl+S.sl.e;S.en+=1}toast(sx.n+': уровень '+S.sl[id])}}
 if(a==='pearlpet'&&S.pa&&S.pets[S.pa]!==undefined&&S.pr>=4&&plv(S.pa).l<PMAX){S.pr-=4;var pq4=plv(S.pa);padd(S.pa,PXP[pq4.l-1]-pq4.x,1)}
