@@ -265,12 +265,12 @@ function oused(id){var u=W.filter(function(w){return oid(w.id)===id}).map(functi
 function EC(){return S.eye||'#4f9a78'}
 function by(a,id){return a.filter(function(x){return x.id===id})[0]}
 var TASKS=[
-{id:'herb',n:'Собрать травы у ручья',e:2,xp:15,c:8,cr:0},
-{id:'crate',n:'Донести ящик в порт',e:2,xp:20,c:10,cr:0,ore:1},
-{id:'lamp',n:'Зажечь фонари на пристани',e:1,xp:10,c:5,cr:0},
-{id:'map',n:'Зарисовать тропу на карту',e:3,xp:30,c:12,cr:1},
-{id:'fish',n:'Наловить рыбы для таверны',e:2,xp:18,c:9,cr:0},
-{id:'bridge',n:'Починить мост у болот',e:3,xp:28,c:11,cr:1,ore:1}];
+{id:'herb',n:'Собрать травы у ручья',e:0,xp:15,c:8,cr:0},
+{id:'crate',n:'Донести ящик в порт',e:0,xp:20,c:10,cr:0,ore:1},
+{id:'lamp',n:'Зажечь фонари на пристани',e:0,xp:10,c:5,cr:0},
+{id:'map',n:'Зарисовать тропу на карту',e:0,xp:30,c:12,cr:1},
+{id:'fish',n:'Наловить рыбы для таверны',e:0,xp:18,c:9,cr:0},
+{id:'bridge',n:'Починить мост у болот',e:0,xp:28,c:11,cr:1,ore:1}];
 var RAR=[{n:'Обычный',c:'#8a98a0'},{n:'Необычный',c:'#3fae6a'},{n:'Редкий',c:'#3f7fe0'},{n:'Эпический',c:'#a35cd6'},{n:'Легендарный',c:'#e9a93b'},{n:'Мифический',c:'#ff6fd8'}];
 var CLO=[
 {id:'iron',slot:'helm',n:'Железный шлем',p:45,ul:1,hp:10,col:'#9aa6b4',r:0},
@@ -839,7 +839,7 @@ el.hidden=false;var h='<div class="bw">',t=A.t,i=t&&TI[t.id];
 if(A.ph==='eyes'){h+='<div class="sp">'+av('Ноа')+'<b>Создание героя</b></div><div style="width:150px;margin:0 auto">'+hero()+'</div><p class="tt" style="text-align:center">Выбери цвет глаз Ноа. Он останется с тобой на всю игру.</p><div class="eyes">'+EYES.map(function(e){return '<button class="'+(S.eye===e.c?'on':'')+'" data-a="eyec" data-id="'+e.c+'" style="background:'+e.c+'" aria-label="'+e.n+'" title="'+e.n+'"></button>'}).join('')+'</div><div class="bs" style="justify-content:center">'+bt('eyeok','x','Начать игру',0,'buy')+'</div>'}
 else if(A.ph==='daily'){h+='<div class="sp">'+av('Ферн')+'<b>Награда за вход</b></div>'+dailyBox()}
 else if(A.ph==='talk'){var L=A.L[A.i];h+='<div class="sp">'+av(L[0])+'<b>'+L[0]+'</b></div><p class="tt">'+L[1]+'</p><div class="bs"><button data-a="next">'+(A.i<A.L.length-1?'Далее':'Понятно')+'</button></div>'}
-else if(A.ph==='intro'){h+='<div class="sp">'+av(i.w)+'<b>'+t.n+'</b></div><p class="tt">'+i.say+'</p><div class="gi">Энергия '+t.e+' · награда: '+t.xp+' опыта, '+t.c+' монет'+(t.cr?', '+t.cr+' крист.':'')+(t.ore?', '+t.ore+' руды':'')+'</div><div class="bs">'+bt('tstart','x','Начать',S.en<t.e,'buy')+bt('aclose','x','Отмена',0,'alt')+'</div>'+(S.en<t.e?'<div class="gi">Не хватает энергии. Подожди или купи зелье в лавке.</div>':'')}
+else if(A.ph==='intro'){h+='<div class="sp">'+av(i.w)+'<b>'+t.n+'</b></div><p class="tt">'+i.say+'</p><div class="gi">Награда: '+t.xp+' опыта, '+t.c+' монет'+(t.cr?', '+t.cr+' крист.':'')+(t.ore?', '+t.ore+' руды':'')+'</div><div class="bs">'+bt('tstart','x','Начать',S.en<t.e,'buy')+bt('aclose','x','Отмена',0,'alt')+'</div>'+(S.en<t.e?'<div class="gi">Не хватает энергии. Подожди или купи зелье в лавке.</div>':'')}
 else if(A.ph==='res'){h+='<div class="sp">'+av('Ноа')+'<b>'+A.title+'</b></div>'+A.L2.map(function(x){return '<p class="tt">'+x+'</p>'}).join('')+'<div class="bs">'+(A.ev?bt('evgo','x','Дальше',0,'buy'):bt('aclose','x','Закрыть',0,'buy'))+'</div>'}
 else if(A.ph==='ev'){h+='<div class="sp">'+av('Ноа')+'<b>'+A.e.n+'</b></div><p class="tt">'+A.e.t+'</p><div class="bs">'+A.e.o.map(function(o,k){return bt('evopt',k,o.t,o.need&&S.c<o.need,k?'alt':'buy')}).join('')+'</div>'}
 else if(A.ph==='rv'){h+='<div class="sp">'+av('Ноа')+'<b>'+A.e.n+'</b></div><p class="tt">'+A.e.t+'</p>'+(A.res?'<p class="tt"><i>'+A.res+'</i></p><div class="bs">'+bt('rnext','x','Дальше',0,'buy')+'</div>':'<div class="bs">'+A.e.o.map(function(o,k){return bt('ropt',k,o.t,0,k?'alt':'buy')}).join('')+'</div>')}
@@ -1043,7 +1043,7 @@ else{var xr=function(x){var lock=S.lvl<x.ul;h+=row(x.mine?oib(by(ORES,x.main)):'
 EXP.filter(function(x){return !x.mine}).forEach(xr);h+='<h2>Добыча руды</h2>';EXP.filter(function(x){return x.mine}).forEach(xr)}
 h+=row('','Уникальные предметы','Осколки из походов собираются в кузнице, во вкладке «Уникальные».',bt('tofu','x','В кузницу',0,'alt'));
 h+='<h2>Задания на сегодня ('+S.done.length+'/'+TASKS.length+')</h2>';
-TASKS.forEach(function(t){var d=S.done.indexOf(t.id)>-1;h+=row('',t.n,'Энергия '+t.e+' · +'+t.xp+' опыта · +'+t.c+' монет'+(t.cr?' · +'+t.cr+' кристалл':'')+(t.ore?' · +'+t.ore+' руды':''),bt('task',t.id,d?'Готово':'Начать',d||S.en<t.e),d)});
+TASKS.forEach(function(t){var d=S.done.indexOf(t.id)>-1;h+=row('',t.n,'+'+t.xp+' опыта · +'+t.c+' монет'+(t.cr?' · +'+t.cr+' кристалл':'')+(t.ore?' · +'+t.ore+' руды':''),bt('task',t.id,d?'Готово':'Начать',d||S.en<t.e),d)});
 var all=S.done.length>=TASKS.length;
 h+=row('','Сундук дня','За все задания: +25 монет, +30 опыта, +2 кристалла',bt('chest','x',S.chest?'Открыт':'Открыть',!all||S.chest),S.chest);
 h+=row('','Серия: '+S.streak+' дн.','Энергия +1 каждые 5 минут. Зелья есть в лавке.',bt('reset','x','Заново',0,'alt'))}
