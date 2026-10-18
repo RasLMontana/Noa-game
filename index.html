@@ -658,6 +658,7 @@ s+='<path d="M96.4 51.6Q100 52.8 103.6 51.6" stroke="#3a1c10" stroke-opacity=".2
 if(q.helm){var HI=by(CLO,q.helm),HG=mg(HI);s+='<g transform="translate(0 -3.2)"><path d="M81 30C79.6 15 88 6.6 100 6.2C112 6.6 120.4 15 119 30L115.6 28C108 22.4 92 22.4 84.4 28Z" fill="'+HG+'"/><path d="M82 27.6C92 22.4 108 22.4 118 27.6V32C108 27 92 27 82 32Z" fill="#6d7a8a"/><circle cx="86" cy="29.4" r="1.4" fill="#dde4ea"/><circle cx="114" cy="29.4" r="1.4" fill="#dde4ea"/><path d="M86 18Q92 10 102 9" stroke="#fff" stroke-opacity=".4" stroke-width="1.6" fill="none" stroke-linecap="round"/>';
 if(HI.hn)s+='<path d="M83 24Q72 22 71 8Q76 16 85 18ZM117 24Q128 22 129 8Q124 16 115 18Z" fill="#efe6d0" stroke="#8a7a5a"/>';if(HI.cw)s+='<path d="M82 14L83 3L91 9L100 -3L109 9L117 3L118 14Z" fill="url(#gd)" stroke="#8a6a1c" stroke-width="1.2"/><circle cx="100" cy="6" r="2.4" fill="#e0483a"/>';if(HI.ch)s+='<path d="M81.5 30L81 44Q82.6 50 88 52L86.6 46Q85 42 85.6 32ZM118.5 30L119 44Q117.4 50 112 52L113.4 46Q115 42 114.4 32Z" fill="'+HG+'"/><path d="M100 7Q94 -10 114 -14Q106 -2 108 8Z" fill="'+HI.pl+'"/>';s+='</g>'}
 return s+'</g></g></svg>'}
+function agiMax(){return S.st.agi*.03>=.65&&.1+S.st.agi*.04>=.7}
 function dodgeCh(){return Math.min(.65,S.st.agi*.03)}
 function pdmg(){var c=Math.random()<Math.min(.7,.1+S.st.agi*.04+petB().crit+(B&&B.bf&&B.bf.b4?.15:0)+(dev('luck')?.05:0));return{d:Math.round(patk()*(B&&B.bf&&B.bf.b1?1.25:1)*(.85+Math.random()*.3)*(c?1.8:1)),cr:c}}
 var B=null;
@@ -1070,7 +1071,7 @@ if(tab==='boss'){h+='<h2>Боссы</h2>'+row('','Атака '+patk()+' · зд�
 h+=relicRow();BOSS.forEach(function(b){var lock=S.lvl<b.ul||(b.gt&&S.ch<b.gt),gl=!lock?'':(S.lvl<b.ul?'Откроется на уровне '+b.ul:'Откроется по ходу сюжета'),k=S.kills[b.id]||0;
 h+='<div class="row'+(lock?' dn':'')+'"><svg viewBox="0 0 80 80">'+b.s+'</svg><div class="tx">'+b.n+'<small>'+(lock?gl:'Здоровье '+b.hp+' · урон '+b.atk+' · побед: '+k+'<br>'+b.spt+'<br>Награда: '+b.c+' монет, '+b.xp+' опыта, '+b.cr+' крист., '+b.ore+' руды'+otext(b.ox))+'</small></div>'+bt('fight',b.id,lock?'Закрыт':'В бой',lock||S.en<3)+'</div>'})}
 if(tab==='skills'){h+='<h2>Навыки</h2>'+row('','Очков навыков: '+S.pts,'Одно очко даётся за каждый уровень. Атака '+patk()+', здоровье '+php()+'.');
-[['str','Сила','+2 к атаке'],['agi','Ловкость','шанс крита и уклонения'],['vit','Стойкость','+10 здоровья']].forEach(function(t){h+=row('',t[1]+': '+S.st[t[0]],t[2],bt('st',t[0],'+1',!S.pts))});
+[['str','Сила','+2 к атаке'],['agi','Ловкость','шанс крита и уклонения'],['vit','Стойкость','+10 здоровья']].forEach(function(t){h+=row('',t[1]+': '+S.st[t[0]],t[2]+(t[0]==='agi'&&agiMax()?'. Достигнут предел: уклонение 65%, крит 70%':''),bt('st',t[0],t[0]==='agi'&&agiMax()?'Макс':'+1',!S.pts||(t[0]==='agi'&&agiMax())))});
 h+='<h2>Боевые умения</h2>'+row('','Умения для боя с боссами','Изучение стоит 2 очка, каждое улучшение 1 очко, максимум 3 ранга.');ABIL.forEach(function(x){var r=S.sk[x.id]||0,cost=r===0?2:1;h+=row('<span class="ic2" style="font-size:1.6rem;border-color:var(--acc)">'+x.ic+'</span>',x.n+(r?' (ранг '+r+')':''),x.d(Math.max(1,r))+(r&&r<3?'<br>Следующий ранг: '+x.d(r+1):''),r>=3?bt('x','x','Макс',1):bt('skup',x.id,r?'Улучшить ('+cost+')':'Изучить ('+cost+')',S.pts<cost,S.pts>=cost?'buy':''))})}
 if(tab==='forge'){
 var fres=row('','В наличии',COIN+' '+S.c+' · 💎 '+S.cr+(S.pr?' · '+PRL()+' '+S.pr:'')+'<br>'+ORES.map(function(o){return o.ic+' '+oget(o.id)}).join(' · ')+'<br>Руду дают боссы, задания и походы, её можно купить в лавке.');
@@ -1119,7 +1120,7 @@ if(a==='evopt'&&A&&A.ph==='ev'){var eo=A.e.o[+id];if(eo&&!(eo.need&&S.c<eo.need)
 if(a==='tofu'){tab='forge';fsub='uniq'}
 if(a==='toore'){tab='bag';btab='ore'}
 if(a==='topot'){tab='bag';btab='potions'}
-if(a==='st'&&S.pts>0){S.pts--;S.st[id]++}
+if(a==='st'&&S.pts>0&&!(id==='agi'&&agiMax())){S.pts--;S.st[id]++}
 if(a==='skup'){var sr=S.sk[id]||0,sc=sr===0?2:1;if(sr<3&&S.pts>=sc){S.pts-=sc;S.sk[id]=sr+1;toast('Умение улучшено: '+by(ABIL,id).n);sfx('up')}}
 if(a==='task')openTask(id);
 if(a==='chest'){S.chest=true;gain(30,25,2);sfx('claim');toast('Сундук: +25 монет, +30 опыта, +2 кристалла')}
