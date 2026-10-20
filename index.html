@@ -1231,14 +1231,14 @@ EV.push(
 {n:'Рыбацкая лодка',t:'Усталый рыбак предлагает купить свежий улов.',ok:function(){return S.c>=60},o:[{t:'Купить улов за 60',need:60,f:function(){S.c-=60;var a=fishAt('reef'),f=a[rnd(a.length)];S.fs[f.id]=(S.fs[f.id]||0)+2;return 'Рыбак отдал '+f.n.toLowerCase()+' ×2.'}},{t:'Отказаться',f:function(){return 'Рыбак кивнул и оттолкнул лодку.'}}]},
 {n:'Эхо кристаллов',t:'Где-то под землёй звенят кристаллы. Звон зовёт к трещине в скале.',ok:function(){return !!S.loc.caves},o:[{t:'Протиснуться',f:function(){if(Math.random()<.6){ingAdd('shard',2);return 'Ноа выбил горсть пыли. +2 кристальной пыли.'}S.c=Math.max(0,S.c-30);return 'Камень осыпался. Ноа потерял 30 монет в суматохе.'}},{t:'Послушать и уйти',f:function(){gain(25,0,0);return 'Звон запомнился надолго. +25 опыта.'}}]});
 
-var GRP={g_hero:{n:'Герой',ic:'stats',m:[['skills','Навыки','Очки навыков и приёмы'],['stats','Характеристики','Здоровье, атака, комплекты'],['pets','Питомцы','Спутники и сытость']]},
+var GRP={g_hero:{n:'Герой',ic:'stats',m:[['skills','Навыки','Очки навыков и приёмы'],['stats','Характеристики','Здоровье, атака, комплекты']]},
 g_world:{n:'Мир',ic:'world',m:[['world','Карта мира','Места, рыбалка, подземелья'],['city','Подводный город','Постройки и улучшения']]},
 g_craft:{n:'Ремесло',ic:'forge',m:[['forge','Кузница','Оружие, броня, улучшения'],['alch','Алхимия','Зелья и походная еда']]},
 g_trade:{n:'Торговля',ic:'shop',m:[['shop','Лавка','Постоянный товар'],['trader','Торговец','Товар по ротации, скупка рыбы']]}};
 TT.g_hero='Герой';TT.g_world='Мир';TT.g_craft='Ремесло';TT.g_trade='Торговля';TT.dev='Dev';
 function grpM(g){var m=GRP[g].m.slice();if(g==='g_hero'&&isDev())m.push(['dev','Dev','Инструменты разработчика']);return m}
 function backTab(){for(var g in GRP)if(GRP[g].m.some(function(x){return x[0]===tab})||(g==='g_hero'&&tab==='dev'))return g;return 'hero'}
-function mbad(id){var xr=S.exp&&Date.now()>=S.exp.end;if(id==='tasks')return (xr||(S.wt&&Date.now()>=S.wt.end))?'✅':(S.exp||S.wt)?'⏳':'';if(id==='quests')return S.ch<STORY.length&&STORY[S.ch].v()>=STORY[S.ch].g?'❗':'';if(id==='ach')return (achNew()||dxNew())?'❗':'';if(id==='daily')return dailyReady()?'❗':'';if(id==='g_hero')return S.pts?'●':(S.pa&&psat(S.pa)<25?'❗':'');if(id==='g_world')return S.cb?'⏳':'';return ''}
+function mbad(id){var xr=S.exp&&Date.now()>=S.exp.end;if(id==='tasks')return (xr||(S.wt&&Date.now()>=S.wt.end))?'✅':(S.exp||S.wt)?'⏳':'';if(id==='quests')return S.ch<STORY.length&&STORY[S.ch].v()>=STORY[S.ch].g?'❗':'';if(id==='ach')return (achNew()||dxNew())?'❗':'';if(id==='pets')return S.pa&&psat(S.pa)<25?'❗':'';if(id==='g_hero')return S.pts?'●':'';if(id==='g_world')return S.cb?'⏳':'';return ''}
 function grpTab(g){return grpM(g).map(function(m){var b=m[0]==='skills'?(S.pts?'●':''):m[0]==='pets'?(S.pa&&psat(S.pa)<25?'❗':''):m[0]==='city'?(S.cb?'⏳':''):'';return row(ic3(m[0],'📁'),m[1]+(b?' '+b:''),m[2],bt('tab',m[0],'Открыть',0,'buy'))}).join('')}
 function render(){
 newDay();regen();cityTick();var appEl=document.getElementById('app');if(appEl)appEl.className=tab==='hero'?'hero':'';
@@ -1249,7 +1249,7 @@ if(tab==='hero'){
 var say=S.en<4?'Устал. Нужен отдых или зелье.':S.done.length>=TASKS.length?'Все дела сделаны.':'Готов к делам.',xr=S.exp&&Date.now()>=S.exp.end;
 h+='<div class="stage big">'+room()+hero()+'<div class="plate">'+curTitle()+'</div><div class="dev">🌟 '+dayEv().n+'</div>'+'<span class="say">'+say+'</span></div>';
 h+='<div class="menu">';
-[['tasks','Дела','📋'],['quests','Сюжет','📖'],['boss','Бои','⚔️'],['g_world','Мир','🗺️'],['g_craft','Ремесло','🔨'],['g_trade','Торговля','🛒'],['bag','Рюкзак','🎒'],['g_hero','Герой','📊'],['ach','Книга','📚'],['daily','Награды','🎁']].forEach(function(m){var bd=mbad(m[0]),ik=GRP[m[0]]?GRP[m[0]].ic:m[0];h+='<button data-a="tab" data-id="'+m[0]+'" aria-label="'+m[1]+'">'+ic3(ik,m[2])+'<span>'+m[1]+'</span>'+(bd?'<i class="bdg">'+bd+'</i>':'')+'</button>'});h+='</div>'}
+[['tasks','Дела','📋'],['quests','Сюжет','📖'],['boss','Бои','⚔️'],['g_world','Мир','🗺️'],['g_craft','Ремесло','🔨'],['g_trade','Торговля','🛒'],['bag','Рюкзак','🎒'],['g_hero','Герой','📊'],['ach','Книга','📚'],['pets','Питомцы','🐾']].forEach(function(m){var bd=mbad(m[0]),ik=GRP[m[0]]?GRP[m[0]].ic:m[0];h+='<button data-a="tab" data-id="'+m[0]+'" aria-label="'+m[1]+'">'+ic3(ik,m[2])+'<span>'+m[1]+'</span>'+(bd?'<i class="bdg">'+bd+'</i>':'')+'</button>'});h+='</div>'}
 if(tab==='tasks'){
 if(S.exp&&!by(EXP,S.exp.id))S.exp=null;if(S.wt&&!by(WATCH,S.wt.id))S.wt=null;
 h+=evRow()+'<h2>Задания</h2>'+subRow()+'<h2>Ночной дозор</h2>'+watchHtml()+'<h2>Руины</h2>'+ruinHtml()+'<h2>Походы</h2>';
