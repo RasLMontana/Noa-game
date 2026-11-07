@@ -21,10 +21,11 @@ from aiogram.types import (
     WebAppInfo,
 )
 
-TOKEN = os.environ["BOT_TOKEN"]      # токен от @BotFather
-WEBAPP_URL = os.environ["WEBAPP_URL"]  # https-адрес, где лежит index.html
+TOKEN = os.environ["HTTP API:
+8865761730:AAEB5b_V9aPQEzn4Q66BTZrwtNYLyioNLTk"]      # токен от @BotFather
+WEBAPP_URL = os.environ["https://github.com/RasLMontana/Noa-game"]  # https-адрес, где лежит index.html
 # Telegram ID администраторов через запятую (команда /stats). Свой ID покажет команда /id
-ADMIN_IDS = {int(x) for x in os.environ.get("ADMIN_IDS", "").replace(" ", "").split(",") if x.isdigit()}
+ADMIN_IDS = {int(x) for x in os.environ.get("ADMIN_IDS", "611637098").replace(" ", "").split(",") if x.isdigit()}
 DB_PATH = os.environ.get("STATS_DB", str(Path(__file__).with_name("noa_stats.db")))
 TZ_HOURS = int(os.environ.get("STATS_TZ_HOURS", "7"))  # часовой пояс для «сегодня» (7 = Красноярск)
 
