@@ -30,7 +30,7 @@ DB_PATH = os.environ.get("STATS_DB", str(Path(__file__).with_name("noa_stats.db"
 TZ_HOURS = int(os.environ.get("STATS_TZ_HOURS", "7"))  # часовой пояс для «сегодня» (7 = Красноярск)
 
 # Серверная часть (облачные сохранения и админ-правки). API_URL - публичный https-адрес этого бота.
-API_URL = os.environ.get("API_URL", "raslmontana-noa-game-2e07.twc1.net").rstrip("/")
+API_URL = os.environ.get("API_URL", "").rstrip("/")
 PORT = int(os.environ.get("PORT", "8080"))
 OWNER_ID = 611637098  # владелец игры, всегда имеет доступ к админ-кнопке
 
