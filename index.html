@@ -1425,9 +1425,9 @@ h+=card('Здоровье: '+php(),kv('Базовое',40)+kv('За уровен
 h+=card('Атака: '+patk(),kv('Базовая',4)+kv('За уровень',S.lvl*2)+kv('Сила ('+S.st.str+')','+'+S.st.str*2)+kv('Оружие',wdmg().toFixed(1))+kv('Экипировка','+'+eqs('atk'))+kv('Комплекты и питомец','+'+Math.round((setB().atk+petB().atk)*100)+'%'));
 h+=card('Оружие: '+nm(wp2),kv('Базовый урон',wp2.d)+kv('Прокачка (ур. '+wl2+')','+'+wl2*25+'%')+kv('Итоговый урон',wdmg().toFixed(1)));
 h+=card('Бой',kv('Шанс крита',Math.min(70,10+S.st.agi*4)+'%')+kv('Сила крита','×1.8')+kv('Уклонение',Math.round(dodgeCh()*100)+'%')+kv('Защита (кнопка)','−50% урона')+kv('Максимум энергии',MAXEN+' (+1 за уровень)'));
-SL.forEach(function(g){var id=S.eq[g[0]],i=id&&by(CLO,id);eqr+=kv(g[1],i?nm(i)+': '+(stext(i,S.wl[i.id]||0)||'без бонуса'):'пусто')});
-h+=card('Бонусы экипировки',eqr+kv('Итого','+'+eqs('hp')+' здоровья, +'+eqs('atk')+' атаки'));
-var sn=setN();h+=card('Комплекты брони',Object.keys(SETS).map(function(k){var st=SETS[k],tot=CLO.filter(function(i){return i.set===k}).length;return kv(st.full,(sn[k]||0)+' / '+tot)+st.b.map(function(b){return '<div class="gi" style="margin:0 0 3px'+((sn[k]||0)>=b[0]?';color:var(--ok);font-weight:700':'')+'">'+b[0]+' предм.: '+btxt(b[1])+'</div>'}).join('')}).join(''));
+var sn=setN(),wk=Object.keys(sn).filter(function(k){return SETS[k]});
+var eb=wk.length?wk.map(function(k){var st=SETS[k],tot=CLO.filter(function(i){return i.set===k}).length;return kv(st.full,sn[k]+' / '+tot)+st.b.map(function(b){return '<div class="gi" style="margin:0 0 3px'+(sn[k]>=b[0]?';color:var(--ok);font-weight:700':'')+'">'+b[0]+' предм.: '+btxt(b[1])+'</div>'}).join('')}).join(''):kv('Комплект','не собран');
+h+=card('Бонусы экипировки',eb+kv('Бонус комплекта',(setB().hp||setB().atk)?btxt(setB()):'нет')+kv('Итого от предметов','+'+eqs('hp')+' здоровья, +'+eqs('atk')+' атаки'));h+=card('Комплекты брони',Object.keys(SETS).map(function(k){var st=SETS[k],tot=CLO.filter(function(i){return i.set===k}).length;return kv(st.full,(sn[k]||0)+' / '+tot)+st.b.map(function(b){return '<div class="gi" style="margin:0 0 3px'+((sn[k]||0)>=b[0]?';color:var(--ok);font-weight:700':'')+'">'+b[0]+' предм.: '+btxt(b[1])+'</div>'}).join('')}).join(''));
 var pq2=S.pa&&by(PETS,S.pa);h+=card('Питомец',pq2?kv(pq2.n+' (ур. '+plv(pq2.id).l+')',pbt(pq2))+kv('Сытость',psat(S.pa)+'%'+(psat(S.pa)<25?' (бонус не работает)':'')):kv('Питомца нет','купи в лавке'))}
 if(tab==='dev'&&isDev())h+=devHtml();
 if(tab==='quests'){var ch=STORY[S.ch];h+='<h2>Сюжет</h2>';
