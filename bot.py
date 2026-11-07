@@ -23,7 +23,7 @@ from aiogram.types import (
 
 TOKEN = os.environ["HTTP API:
 8865761730:AAEB5b_V9aPQEzn4Q66BTZrwtNYLyioNLTk"]      # токен от @BotFather
-WEBAPP_URL = os.environ["https://github.com/RasLMontana/Noa-game"]  # https-адрес, где лежит index.html
+WEBAPP_URL = os.environ["raslmontana-noa-game-2e07.twc1.net"]  # https-адрес, где лежит index.html
 # Telegram ID администраторов через запятую (команда /stats). Свой ID покажет команда /id
 ADMIN_IDS = {int(x) for x in os.environ.get("ADMIN_IDS", "611637098").replace(" ", "").split(",") if x.isdigit()}
 DB_PATH = os.environ.get("STATS_DB", str(Path(__file__).with_name("noa_stats.db")))
